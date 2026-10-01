@@ -1,17 +1,41 @@
-# sal
+# งานเงินเดือน กรมทางหลวง (Flutter Web)
 
-งานเงินเดือน กรมทางหลวง
+หน้าเว็บรวมทางเข้าระบบงานเงินเดือน แทนหน้าแรกของ https://sal.doh.go.th/sal/
+เมนูมีไอคอน ตรึงเมนูข้างได้แบบเดียวกับระบบ HTC
 
-## Getting Started
+## เมนู
 
-This project is a starting point for a Flutter application.
+| เมนู | ปลายทาง |
+|---|---|
+| ใบรับรองภาษีกรมทางหลวง/สลิป | https://dbdoh.doh.go.th/yt/ |
+| ใบรับรองภาษีตำรวจทางหลวง/สลิป | https://dbdoh.doh.go.th/tax/ |
+| สลิป (พนักงานราชการส่วนกลาง) | http://dev.doh.go.th:8088/payroll |
+| หักหนี้ | https://dbdoh.doh.go.th/dp |
+| ฌาปนกิจ — ดาวน์โหลดไฟล์ | https://sal.doh.go.th/Funeral/ |
+| ฌาปนกิจ — ระบบฌาปนกิจสงเคราะห์ | http://hr-app:7777/DohHrFfd/common/Login |
+| ฌาปนกิจ — คู่มือ | https://sal.doh.go.th/sal/resources/images/Funeral.pdf |
+| Smart Helpdesk | https://smhd.doh.go.th/login |
 
-A few resources to get you started if this is your first Flutter project:
+แก้ลิงก์ที่ `lib/config/menu_data.dart` ที่เดียว
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## เมนูข้าง
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- จอกว้างตั้งแต่ 900px: ตรึงไว้ข้างซ้ายเป็นค่าเริ่มต้น เหลือแต่ไอคอน กดปุ่มด้านบนหรือไอคอนกลุ่มแล้วขยายเห็นชื่อ
+- ปุ่มหมุดตรึง/เลิกตรึง จำไว้ในเบราว์เซอร์ (`shared_preferences` key `sal_menu_pinned`)
+- จอแคบ: เมนูเลื่อนออกจากด้านซ้าย
+
+## คำสั่ง
+
+```bash
+flutter run -d chrome
+flutter test
+flutter analyze
+flutter build web --release --no-wasm-dry-run          # ได้ไฟล์ที่ build/web
+flutter build web --release --no-wasm-dry-run --base-href /sal2/   # ถ้าวางใต้ path ย่อย
+```
+
+## ข้อกำหนด
+
+- ฟอนต์ไทย bundle มากับแอป (`assets/fonts`: Kanit หัวข้อ, Sarabun เนื้อหา — สัญญาอนุญาต OFL) ต้องระบุ `fontFamily` ให้ชัด
+- ข้อความที่ผู้ใช้เห็นและคอมเมนต์ในโค้ดเป็นภาษาไทย
+- ภาพประกอบหน้าแรกวาดด้วย widget (`lib/widgets/payroll_illustration.dart`) ไม่ใช้ไฟล์รูป
