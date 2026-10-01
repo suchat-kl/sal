@@ -1,0 +1,407 @@
+import 'package:flutter/material.dart';
+
+import '../config/menu_data.dart';
+import '../config/theme.dart';
+import '../utils/link.dart';
+import '../widgets/payroll_illustration.dart';
+
+/// หน้าแรก: ภาพหัว + ทางลัดไปแต่ละระบบ + ข้อความอธิบายสองส่วน (ข้อความเดียวกับระบบเดิม)
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        final wide = c.maxWidth >= 900;
+        final pad = c.maxWidth < 600 ? 16.0 : 28.0;
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(pad, pad, pad, 0),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Hero(wide: wide),
+                  const SizedBox(height: 28),
+                  Text('บริการทั้งหมด', style: AppTheme.heading(20, weight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  const Text('เลือกระบบที่ต้องการ ระบบจะเปิดในแท็บใหม่',
+                      style: TextStyle(fontFamily: AppTheme.bodyFont, color: AppTheme.textSecondary)),
+                  const SizedBox(height: 16),
+                  _ShortcutGrid(width: c.maxWidth - pad * 2),
+                  const SizedBox(height: 28),
+                  _InfoSections(wide: wide),
+                  const SizedBox(height: 32),
+                  const _Footer(),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Hero extends StatelessWidget {
+  final bool wide;
+
+  const _Hero({required this.wide});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.account_balance_rounded, color: Colors.white, size: 16),
+              SizedBox(width: 6),
+              Text('กรมทางหลวง',
+                  style: TextStyle(fontFamily: AppTheme.bodyFont, color: Colors.white, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text('งานเงินเดือน', style: AppTheme.heading(wide ? 46 : 34, color: Colors.white, weight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        Text(
+          'ดาวน์โหลดใบรับรองภาษี สลิปเงินเดือน รายการหักหนี้ และเอกสารฌาปนกิจ ได้ในที่เดียว',
+          style: TextStyle(
+            fontFamily: AppTheme.bodyFont,
+            fontSize: wide ? 18 : 16,
+            color: Colors.white.withValues(alpha: 0.9),
+            height: 1.6,
+          ),
+        ),
+        const SizedBox(height: 22),
+        Wrap(
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.accent,
+                foregroundColor: AppTheme.navy,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => openLink(context, 'https://dbdoh.doh.go.th/yt/'),
+              icon: const Icon(Icons.receipt_long_rounded),
+              label: const Text('ใบรับรองภาษี/สลิป',
+                  style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w700)),
+            ),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => openLink(context, MenuData.helpdeskUrl),
+              icon: const Icon(Icons.support_agent_rounded),
+              label: const Text('สอบถามปัญหา', style: TextStyle(fontFamily: AppTheme.bodyFont)),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: AppTheme.heroGradient,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [BoxShadow(color: Color(0x330D9488), blurRadius: 30, offset: Offset(0, 14))],
+      ),
+      child: Stack(
+        children: [
+          // ลายวงกลมจาง ๆ มุมขวาบน
+          Positioned(
+            right: -80,
+            top: -80,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.07)),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(wide ? 40 : 24),
+            child: wide
+                ? Row(
+                    children: [
+                      Expanded(flex: 6, child: text),
+                      const SizedBox(width: 24),
+                      const Expanded(flex: 5, child: SizedBox(height: 300, child: PayrollIllustration())),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      text,
+                      const SizedBox(height: 24),
+                      const SizedBox(height: 220, child: PayrollIllustration()),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShortcutGrid extends StatelessWidget {
+  final double width;
+
+  const _ShortcutGrid({required this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final cols = width >= 1000 ? 4 : width >= 700 ? 3 : width >= 460 ? 2 : 1;
+    const gap = 16.0;
+    final cardWidth = (width - gap * (cols - 1)) / cols;
+    return Wrap(
+      spacing: gap,
+      runSpacing: gap,
+      children: [
+        for (final m in MenuData.shortcuts) SizedBox(width: cardWidth, child: _ShortcutCard(node: m)),
+      ],
+    );
+  }
+}
+
+class _ShortcutCard extends StatefulWidget {
+  final MenuNode node;
+
+  const _ShortcutCard({required this.node});
+
+  @override
+  State<_ShortcutCard> createState() => _ShortcutCardState();
+}
+
+class _ShortcutCardState extends State<_ShortcutCard> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final m = widget.node;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        transform: Matrix4.translationValues(0, _hover ? -4 : 0, 0),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: _hover ? AppTheme.primary.withValues(alpha: 0.5) : AppTheme.border),
+          boxShadow: [
+            BoxShadow(
+              color: _hover ? const Color(0x220D9488) : const Color(0x0A0F172A),
+              blurRadius: _hover ? 24 : 10,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => openLink(context, m.url!),
+            // สูงเท่ากันทุกใบ: ชื่อไม่เกิน 2 บรรทัด คำอธิบายไม่เกิน 2 บรรทัด
+            child: Container(
+              height: 196,
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: _hover ? AppTheme.heroGradient : null,
+                          color: _hover ? null : AppTheme.primaryLight,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(m.icon, color: _hover ? Colors.white : AppTheme.primaryDark, size: 26),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.arrow_outward_rounded,
+                          color: _hover ? AppTheme.primary : AppTheme.textSecondary.withValues(alpha: 0.5), size: 20),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(m.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTheme.heading(16, weight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  Text(
+                    m.description ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontFamily: AppTheme.bodyFont, fontSize: 13.5, color: AppTheme.textSecondary, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ข้อความอธิบายสองส่วน — ข้อความเดียวกับหน้าแรกของระบบเดิม
+class _InfoSections extends StatelessWidget {
+  final bool wide;
+
+  const _InfoSections({required this.wide});
+
+  @override
+  Widget build(BuildContext context) {
+    final users = _InfoCard(
+      icon: Icons.groups_2_rounded,
+      iconColor: AppTheme.primary,
+      iconBg: AppTheme.primaryLight,
+      title: 'ผู้ใช้งานระบบประกอบด้วย',
+      body: 'เจ้าหน้าที่ฝ่ายบัญชีของแต่ละหน่วยงาน ใช้ดาวน์โหลดรายละเอียดการจ่ายเงิน และภาษีประจำปี '
+          'ชื่อผู้ใช้งานใช้ค่าเดิม รหัสผ่านใช้เป็น ******** หลังจากเข้าระบบแล้วควรเปลี่ยนรหัสผ่านด้วย',
+      action: TextButton.icon(
+        onPressed: () => openLink(context, MenuData.funeralManualUrl),
+        icon: const Icon(Icons.menu_book_rounded, size: 18),
+        label: const Text('คู่มือฌาปนกิจ »', style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w500)),
+      ),
+    );
+    final help = _InfoCard(
+      icon: Icons.support_agent_rounded,
+      iconColor: const Color(0xFFB45309),
+      iconBg: AppTheme.accentSoft,
+      title: 'สอบถามปัญหาเพิ่มเติม',
+      body: 'สอบถามผ่านระบบ Smart Helpdesk ศูนย์เทคโนโลยีสารสนเทศ กรมทางหลวง',
+      contacts: const [
+        ('ศูนย์เทคโนโลยีสารสนเทศ', 'โทร. 26727 , 26728'),
+        ('ฝ่ายบัญชี', 'โทร. 25035, 25036'),
+      ],
+      action: TextButton.icon(
+        onPressed: () => openLink(context, MenuData.helpdeskUrl),
+        icon: const Icon(Icons.open_in_new_rounded, size: 18),
+        label: const Text('สอบถามผ่านระบบ Smart Helpdesk',
+            style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w500)),
+      ),
+    );
+    if (!wide) {
+      return Column(children: [users, const SizedBox(height: 16), help]);
+    }
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [Expanded(child: users), const SizedBox(width: 16), Expanded(child: help)],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final String body;
+  final List<(String, String)> contacts;
+  final Widget action;
+
+  const _InfoCard({
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    required this.body,
+    required this.action,
+    this.contacts = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: iconColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(title, style: AppTheme.heading(19, weight: FontWeight.w700))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(body,
+              style: const TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 15.5, height: 1.7, color: Color(0xFF334155))),
+          for (final (who, tel) in contacts)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                children: [
+                  const Icon(Icons.call_rounded, size: 18, color: AppTheme.primary),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(text: '$who  ', style: const TextStyle(fontWeight: FontWeight.w700)),
+                        TextSpan(text: tel, style: const TextStyle(color: AppTheme.textSecondary)),
+                      ]),
+                      style: const TextStyle(fontFamily: AppTheme.bodyFont),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 12),
+          action,
+        ],
+      ),
+    );
+  }
+}
+
+class _Footer extends StatelessWidget {
+  const _Footer();
+
+  @override
+  Widget build(BuildContext context) {
+    final year = DateTime.now().year + 543;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Text(
+        '© ศูนย์เทคโนโลยีสารสนเทศ กรมทางหลวง $year',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontFamily: AppTheme.bodyFont, color: AppTheme.textSecondary, fontSize: 13),
+      ),
+    );
+  }
+}
