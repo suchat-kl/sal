@@ -13,6 +13,7 @@
 | หักหนี้ (ข้าราชการ/ลูกจ้างประจำ) | https://dbdoh.doh.go.th/dp |
 | ฌาปนกิจ — ดาวน์โหลดไฟล์ | https://sal.doh.go.th/Funeral/ |
 | ฌาปนกิจ — ระบบฌาปนกิจสงเคราะห์ | http://hr-app:7777/DohHrFfd/common/Login |
+| จองห้องพัก/ห้องอบรม (HTC) | https://inf.doh.go.th/htc/ |
 | Smart Helpdesk | https://smhd.doh.go.th/login |
 
 แก้ลิงก์ที่ `lib/config/menu_data.dart` ที่เดียว

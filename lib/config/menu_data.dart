@@ -93,6 +93,13 @@ class MenuData {
       ],
     ),
     MenuNode(
+      id: 'htc',
+      title: 'จองห้องพัก/ห้องอบรม (HTC)',
+      icon: Icons.apartment_rounded,
+      url: 'https://inf.doh.go.th/htc/',
+      description: 'ระบบจองห้องพัก ห้องประชุม และห้องกิจกรรม ศูนย์พัฒนาทรัพยากรบุคคลงานทาง',
+    ),
+    MenuNode(
       id: 'helpdesk',
       title: 'Smart Helpdesk',
       icon: Icons.support_agent_rounded,
