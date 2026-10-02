@@ -90,11 +90,11 @@ class _Hero extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         Text(
           'งานเงินเดือน',
           style: AppTheme.heading(
-            wide ? 46 : 34,
+            wide ? 40 : 32,
             color: Colors.white,
             weight: FontWeight.w700,
           ),
@@ -109,7 +109,7 @@ class _Hero extends StatelessWidget {
             height: 1.6,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 10,
@@ -129,7 +129,7 @@ class _Hero extends StatelessWidget {
               onPressed: () => openLink(context, 'https://dbdoh.doh.go.th/yt/'),
               icon: const Icon(Icons.receipt_long_rounded),
               label: const Text(
-                'ใบรับรองภาษี/สลิป',
+                'ใบรับรองภาษี/สลิป กรมทางหลวง',
                 style: TextStyle(
                   fontFamily: AppTheme.bodyFont,
                   fontWeight: FontWeight.w700,
@@ -189,7 +189,10 @@ class _Hero extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(wide ? 40 : 24),
+            // ลดความสูงการ์ดหัว: ขอบบน-ล่างเหลือ 24 และภาพประกอบเตี้ยลง
+            padding: wide
+                ? const EdgeInsets.symmetric(horizontal: 40, vertical: 24)
+                : const EdgeInsets.all(20),
             child: wide
                 ? Row(
                     children: [
@@ -198,7 +201,7 @@ class _Hero extends StatelessWidget {
                       const Expanded(
                         flex: 5,
                         child: SizedBox(
-                          height: 300,
+                          height: 210,
                           child: PayrollIllustration(),
                         ),
                       ),
@@ -208,8 +211,8 @@ class _Hero extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       text,
-                      const SizedBox(height: 24),
-                      const SizedBox(height: 220, child: PayrollIllustration()),
+                      const SizedBox(height: 16),
+                      const SizedBox(height: 170, child: PayrollIllustration()),
                     ],
                   ),
           ),
@@ -234,16 +237,29 @@ class _ShortcutGrid extends StatelessWidget {
         ? 2
         : 1;
     const gap = 16.0;
-    final cardWidth = (width - gap * (cols - 1)) / cols;
-    return Wrap(
-      spacing: gap,
-      runSpacing: gap,
+    final items = MenuData.shortcuts;
+    // จัดเป็นแถว แถวละ cols ใบ การ์ดในแถวเดียวกันสูงเท่าใบที่ข้อความยาวที่สุด
+    // ข้อความจึงแสดงครบทุกขนาดจอ ไม่ถูกตัดด้วย "…"
+    return Column(
       children: [
-        for (final m in MenuData.shortcuts)
-          SizedBox(
-            width: cardWidth,
-            child: _ShortcutCard(node: m),
+        for (var i = 0; i < items.length; i += cols) ...[
+          if (i > 0) const SizedBox(height: gap),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var j = 0; j < cols; j++) ...[
+                  if (j > 0) const SizedBox(width: gap),
+                  Expanded(
+                    child: i + j < items.length
+                        ? _ShortcutCard(node: items[i + j])
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
           ),
+        ],
       ],
     );
   }
@@ -299,9 +315,8 @@ class _ShortcutCardState extends State<_ShortcutCard> {
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               onTap: () => openLink(context, m.url!),
-              // สูงเท่ากันทุกใบ: ชื่อไม่เกิน 2 บรรทัด คำอธิบายไม่เกิน 2 บรรทัด
+              // ไม่จำกัดความสูง: ความสูงของแถวมาจากการ์ดที่ข้อความยาวที่สุด (_ShortcutGrid)
               child: Container(
-                height: 196,
                 padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,15 +358,11 @@ class _ShortcutCardState extends State<_ShortcutCard> {
                     const SizedBox(height: 14),
                     Text(
                       m.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: AppTheme.heading(16, weight: FontWeight.w500),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       m.description ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: AppTheme.bodyFont,
                         fontSize: 13.5,
@@ -386,17 +397,6 @@ class _InfoSections extends StatelessWidget {
       body:
           'เจ้าหน้าที่ฝ่ายบัญชีของแต่ละหน่วยงาน ใช้ดาวน์โหลดรายละเอียดการจ่ายเงิน และภาษีประจำปี '
           'ชื่อผู้ใช้งานใช้ค่าเดิม รหัสผ่านใช้เป็น ******** หลังจากเข้าระบบแล้วควรเปลี่ยนรหัสผ่านด้วย',
-      action: TextButton.icon(
-        onPressed: () => openLink(context, MenuData.funeralManualUrl),
-        icon: const Icon(Icons.menu_book_rounded, size: 18),
-        label: const Text(
-          'คู่มือฌาปนกิจ »',
-          style: TextStyle(
-            fontFamily: AppTheme.bodyFont,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
     );
     final help = _InfoCard(
       icon: Icons.support_agent_rounded,
@@ -443,7 +443,7 @@ class _InfoCard extends StatelessWidget {
   final String title;
   final String body;
   final List<(String, String)> contacts;
-  final Widget action;
+  final Widget? action;
 
   const _InfoCard({
     required this.icon,
@@ -451,7 +451,7 @@ class _InfoCard extends StatelessWidget {
     required this.iconBg,
     required this.title,
     required this.body,
-    required this.action,
+    this.action,
     this.contacts = const [],
   });
 
@@ -530,8 +530,7 @@ class _InfoCard extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 12),
-          action,
+          if (action != null) ...[const SizedBox(height: 12), action!],
         ],
       ),
     );

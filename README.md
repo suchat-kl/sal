@@ -10,10 +10,9 @@
 | ใบรับรองภาษีกรมทางหลวง/สลิป | https://dbdoh.doh.go.th/yt/ |
 | ใบรับรองภาษีตำรวจทางหลวง/สลิป | https://dbdoh.doh.go.th/tax/ |
 | สลิป (พนักงานราชการส่วนกลาง) | http://dev.doh.go.th:8088/payroll |
-| หักหนี้ | https://dbdoh.doh.go.th/dp |
+| หักหนี้ (ข้าราชการ/ลูกจ้างประจำ) | https://dbdoh.doh.go.th/dp |
 | ฌาปนกิจ — ดาวน์โหลดไฟล์ | https://sal.doh.go.th/Funeral/ |
 | ฌาปนกิจ — ระบบฌาปนกิจสงเคราะห์ | http://hr-app:7777/DohHrFfd/common/Login |
-| ฌาปนกิจ — คู่มือ | https://sal.doh.go.th/sal/resources/images/Funeral.pdf |
 | Smart Helpdesk | https://smhd.doh.go.th/login |
 
 แก้ลิงก์ที่ `lib/config/menu_data.dart` ที่เดียว

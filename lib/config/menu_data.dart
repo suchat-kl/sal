@@ -28,7 +28,6 @@ class MenuData {
   MenuData._();
 
   static const String homeId = 'home';
-  static const String funeralManualUrl = 'https://sal.doh.go.th/sal/resources/images/Funeral.pdf';
   static const String helpdeskUrl = 'https://smhd.doh.go.th/login';
   static const String legacyLoginUrl = 'https://sal.doh.go.th/sal/';
 
@@ -44,14 +43,15 @@ class MenuData {
           title: 'ใบรับรองภาษีกรมทางหลวง/สลิป',
           icon: Icons.description_rounded,
           url: 'https://dbdoh.doh.go.th/yt/',
-          description: 'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ข้าราชการ/ลูกจ้าง กรมทางหลวง',
+          description: 'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ข้าราชการ/ลูกจ้างประจำ/พนักงานราชการส่วนกลาง กรมทางหลวง',
         ),
         MenuNode(
           id: 'tax-police',
           title: 'ใบรับรองภาษีตำรวจทางหลวง/สลิป',
           icon: Icons.local_police_rounded,
           url: 'https://dbdoh.doh.go.th/tax/',
-          description: 'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ตำรวจทางหลวง',
+          description:
+              'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ตำรวจทางหลวง',
         ),
         MenuNode(
           id: 'payroll-gov',
@@ -64,10 +64,10 @@ class MenuData {
     ),
     MenuNode(
       id: 'debt',
-      title: 'หักหนี้',
+      title: 'หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)',
       icon: Icons.account_balance_wallet_rounded,
       url: 'https://dbdoh.doh.go.th/dp',
-      description: 'รายการหักหนี้จากเงินเดือน',
+      description: 'รายการหักหนี้จากเงินเดือน สำหรับข้าราชการและลูกจ้างประจำ',
     ),
     MenuNode(
       id: 'funeral',
@@ -86,15 +86,10 @@ class MenuData {
           title: 'ระบบฌาปนกิจสงเคราะห์',
           icon: Icons.groups_rounded,
           url: 'http://hr-app:7777/DohHrFfd/common/Login',
-          description: 'เข้าระบบฌาปนกิจสงเคราะห์ (ใช้ได้ภายในเครือข่ายกรมทางหลวง)',
+          description:
+              'เข้าระบบฌาปนกิจสงเคราะห์ (ใช้ได้ภายในเครือข่ายกรมทางหลวง)',
         ),
-        MenuNode(
-          id: 'funeral-manual',
-          title: 'คู่มือฌาปนกิจ',
-          icon: Icons.menu_book_rounded,
-          url: funeralManualUrl,
-          description: 'คู่มือการใช้งานระบบฌาปนกิจ (PDF)',
-        ),
+        // คู่มือฌาปนกิจ (Funeral.pdf) เอาออกทั้งเมนู การ์ด และปุ่ม ตามที่ผู้ใช้สั่ง
       ],
     ),
     MenuNode(
@@ -108,7 +103,7 @@ class MenuData {
 
   /// เมนูปลายทางทั้งหมด (ไม่รวมหน้าแรก) ใช้ทำการ์ดทางลัดในหน้าแรก
   static List<MenuNode> get shortcuts => [
-        for (final m in items)
-          if (m.isGroup) ...m.children else if (m.url != null) m,
-      ];
+    for (final m in items)
+      if (m.isGroup) ...m.children else if (m.url != null) m,
+  ];
 }

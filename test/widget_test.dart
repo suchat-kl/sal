@@ -47,15 +47,15 @@ void main() {
 
     await tester.pumpWidget(SalApp(prefs: prefs));
     await tester.pumpAndSettle();
-    expect(_inMenu('หักหนี้'), findsNothing);
+    expect(_inMenu('หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)'), findsNothing);
 
     await tester.tap(find.byTooltip('ขยายเมนู'));
     await tester.pumpAndSettle();
-    expect(_inMenu('หักหนี้'), findsOneWidget);
+    expect(_inMenu('หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)'), findsOneWidget);
 
     await tester.tap(find.byTooltip('ย่อเมนูเหลือแต่ไอคอน'));
     await tester.pumpAndSettle();
-    expect(_inMenu('หักหนี้'), findsNothing);
+    expect(_inMenu('หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)'), findsNothing);
   });
 
   testWidgets('จอแคบใช้เมนูเลื่อนออก', (tester) async {
@@ -70,5 +70,19 @@ void main() {
     await tester.tap(find.byTooltip('เมนู'));
     await tester.pumpAndSettle();
     expect(_inMenu('ใบรับรองภาษีกรมทางหลวง/สลิป'), findsOneWidget);
+  });
+
+  testWidgets('การ์ดแสดงข้อความครบ ไม่ล้น ที่จอ 720 และ 1000 (การ์ดแคบที่สุด)', (tester) async {
+    for (final w in [720.0, 1000.0]) {
+      tester.view.physicalSize = Size(w, 1600);
+      tester.view.devicePixelRatio = 1;
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(SalApp(prefs: prefs));
+      await tester.pumpAndSettle();
+      // pumpAndSettle จะล้มเองถ้ามี RenderFlex overflow
+      expect(find.textContaining('ข้าราชการ/ลูกจ้างประจำ/พนักงานราชการ'), findsOneWidget);
+    }
+    tester.view.reset();
   });
 }
