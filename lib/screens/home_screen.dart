@@ -25,10 +25,18 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   _Hero(wide: wide),
                   const SizedBox(height: 28),
-                  Text('บริการทั้งหมด', style: AppTheme.heading(20, weight: FontWeight.w700)),
+                  Text(
+                    'บริการทั้งหมด',
+                    style: AppTheme.heading(20, weight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('เลือกระบบที่ต้องการ ระบบจะเปิดในแท็บใหม่',
-                      style: TextStyle(fontFamily: AppTheme.bodyFont, color: AppTheme.textSecondary)),
+                  const Text(
+                    'เลือกระบบที่ต้องการ ระบบจะเปิดในแท็บใหม่',
+                    style: TextStyle(
+                      fontFamily: AppTheme.bodyFont,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   _ShortcutGrid(width: c.maxWidth - pad * 2),
                   const SizedBox(height: 28),
@@ -65,15 +73,32 @@ class _Hero extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.account_balance_rounded, color: Colors.white, size: 16),
+              Icon(
+                Icons.account_balance_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
               SizedBox(width: 6),
-              Text('กรมทางหลวง',
-                  style: TextStyle(fontFamily: AppTheme.bodyFont, color: Colors.white, fontWeight: FontWeight.w500)),
+              Text(
+                'กรมทางหลวง',
+                style: TextStyle(
+                  fontFamily: AppTheme.bodyFont,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        Text('งานเงินเดือน', style: AppTheme.heading(wide ? 46 : 34, color: Colors.white, weight: FontWeight.w700)),
+        Text(
+          'งานเงินเดือน',
+          style: AppTheme.heading(
+            wide ? 46 : 34,
+            color: Colors.white,
+            weight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
           'ดาวน์โหลดใบรับรองภาษี สลิปเงินเดือน รายการหักหนี้ และเอกสารฌาปนกิจ ได้ในที่เดียว',
@@ -93,24 +118,42 @@ class _Hero extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppTheme.accent,
                 foregroundColor: AppTheme.navy,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => openLink(context, 'https://dbdoh.doh.go.th/yt/'),
               icon: const Icon(Icons.receipt_long_rounded),
-              label: const Text('ใบรับรองภาษี/สลิป',
-                  style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w700)),
+              label: const Text(
+                'ใบรับรองภาษี/สลิป',
+                style: TextStyle(
+                  fontFamily: AppTheme.bodyFont,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () => openLink(context, MenuData.helpdeskUrl),
               icon: const Icon(Icons.support_agent_rounded),
-              label: const Text('สอบถามปัญหา', style: TextStyle(fontFamily: AppTheme.bodyFont)),
+              label: const Text(
+                'สอบถามปัญหา',
+                style: TextStyle(fontFamily: AppTheme.bodyFont),
+              ),
             ),
           ],
         ),
@@ -122,7 +165,13 @@ class _Hero extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppTheme.heroGradient,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: const [BoxShadow(color: Color(0x330D9488), blurRadius: 30, offset: Offset(0, 14))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x330D9488),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
       child: Stack(
         children: [
@@ -133,7 +182,10 @@ class _Hero extends StatelessWidget {
             child: Container(
               width: 260,
               height: 260,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.07)),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.07),
+              ),
             ),
           ),
           Padding(
@@ -143,7 +195,13 @@ class _Hero extends StatelessWidget {
                     children: [
                       Expanded(flex: 6, child: text),
                       const SizedBox(width: 24),
-                      const Expanded(flex: 5, child: SizedBox(height: 300, child: PayrollIllustration())),
+                      const Expanded(
+                        flex: 5,
+                        child: SizedBox(
+                          height: 300,
+                          child: PayrollIllustration(),
+                        ),
+                      ),
                     ],
                   )
                 : Column(
@@ -168,14 +226,24 @@ class _ShortcutGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cols = width >= 1000 ? 4 : width >= 700 ? 3 : width >= 460 ? 2 : 1;
+    final cols = width >= 1000
+        ? 4
+        : width >= 700
+        ? 3
+        : width >= 460
+        ? 2
+        : 1;
     const gap = 16.0;
     final cardWidth = (width - gap * (cols - 1)) / cols;
     return Wrap(
       spacing: gap,
       runSpacing: gap,
       children: [
-        for (final m in MenuData.shortcuts) SizedBox(width: cardWidth, child: _ShortcutCard(node: m)),
+        for (final m in MenuData.shortcuts)
+          SizedBox(
+            width: cardWidth,
+            child: _ShortcutCard(node: m),
+          ),
       ],
     );
   }
@@ -199,64 +267,100 @@ class _ShortcutCardState extends State<_ShortcutCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        transform: Matrix4.translationValues(0, _hover ? -4 : 0, 0),
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: _hover ? AppTheme.primary.withValues(alpha: 0.5) : AppTheme.border),
-          boxShadow: [
-            BoxShadow(
-              color: _hover ? const Color(0x220D9488) : const Color(0x0A0F172A),
-              blurRadius: _hover ? 24 : 10,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
+      // ชี้เมาส์: การ์ดลอยขึ้นและขยายเล็กน้อย
+      child: AnimatedScale(
+        scale: _hover ? 1.03 : 1.0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(0, _hover ? -8 : 0, 0),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(18),
-            onTap: () => openLink(context, m.url!),
-            // สูงเท่ากันทุกใบ: ชื่อไม่เกิน 2 บรรทัด คำอธิบายไม่เกิน 2 บรรทัด
-            child: Container(
-              height: 196,
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: _hover ? AppTheme.heroGradient : null,
-                          color: _hover ? null : AppTheme.primaryLight,
-                          borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: _hover
+                  ? AppTheme.primary.withValues(alpha: 0.5)
+                  : AppTheme.border,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: _hover
+                    ? const Color(0x220D9488)
+                    : const Color(0x0A0F172A),
+                blurRadius: _hover ? 24 : 10,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () => openLink(context, m.url!),
+              // สูงเท่ากันทุกใบ: ชื่อไม่เกิน 2 บรรทัด คำอธิบายไม่เกิน 2 บรรทัด
+              child: Container(
+                height: 196,
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        // ชี้เมาส์: ไอคอนหมุนหนึ่งรอบ (เลยไปนิดแล้วเด้งกลับ) เอาเมาส์ออกหมุนกลับ
+                        AnimatedRotation(
+                          turns: _hover ? 1 : 0,
+                          duration: const Duration(milliseconds: 700),
+                          curve: Curves.easeOutBack,
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: _hover ? AppTheme.heroGradient : null,
+                              color: _hover ? null : AppTheme.primaryLight,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              m.icon,
+                              color: _hover
+                                  ? Colors.white
+                                  : AppTheme.primaryDark,
+                              size: 26,
+                            ),
+                          ),
                         ),
-                        child: Icon(m.icon, color: _hover ? Colors.white : AppTheme.primaryDark, size: 26),
-                      ),
-                      const Spacer(),
-                      Icon(Icons.arrow_outward_rounded,
-                          color: _hover ? AppTheme.primary : AppTheme.textSecondary.withValues(alpha: 0.5), size: 20),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(m.title,
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_outward_rounded,
+                          color: _hover
+                              ? AppTheme.primary
+                              : AppTheme.textSecondary.withValues(alpha: 0.5),
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      m.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTheme.heading(16, weight: FontWeight.w500)),
-                  const SizedBox(height: 6),
-                  Text(
-                    m.description ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontFamily: AppTheme.bodyFont, fontSize: 13.5, color: AppTheme.textSecondary, height: 1.5),
-                  ),
-                ],
+                      style: AppTheme.heading(16, weight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      m.description ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: AppTheme.bodyFont,
+                        fontSize: 13.5,
+                        color: AppTheme.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -279,12 +383,19 @@ class _InfoSections extends StatelessWidget {
       iconColor: AppTheme.primary,
       iconBg: AppTheme.primaryLight,
       title: 'ผู้ใช้งานระบบประกอบด้วย',
-      body: 'เจ้าหน้าที่ฝ่ายบัญชีของแต่ละหน่วยงาน ใช้ดาวน์โหลดรายละเอียดการจ่ายเงิน และภาษีประจำปี '
+      body:
+          'เจ้าหน้าที่ฝ่ายบัญชีของแต่ละหน่วยงาน ใช้ดาวน์โหลดรายละเอียดการจ่ายเงิน และภาษีประจำปี '
           'ชื่อผู้ใช้งานใช้ค่าเดิม รหัสผ่านใช้เป็น ******** หลังจากเข้าระบบแล้วควรเปลี่ยนรหัสผ่านด้วย',
       action: TextButton.icon(
         onPressed: () => openLink(context, MenuData.funeralManualUrl),
         icon: const Icon(Icons.menu_book_rounded, size: 18),
-        label: const Text('คู่มือฌาปนกิจ »', style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w500)),
+        label: const Text(
+          'คู่มือฌาปนกิจ »',
+          style: TextStyle(
+            fontFamily: AppTheme.bodyFont,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
     final help = _InfoCard(
@@ -300,8 +411,13 @@ class _InfoSections extends StatelessWidget {
       action: TextButton.icon(
         onPressed: () => openLink(context, MenuData.helpdeskUrl),
         icon: const Icon(Icons.open_in_new_rounded, size: 18),
-        label: const Text('สอบถามผ่านระบบ Smart Helpdesk',
-            style: TextStyle(fontFamily: AppTheme.bodyFont, fontWeight: FontWeight.w500)),
+        label: const Text(
+          'สอบถามผ่านระบบ Smart Helpdesk',
+          style: TextStyle(
+            fontFamily: AppTheme.bodyFont,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
     if (!wide) {
@@ -310,7 +426,11 @@ class _InfoSections extends StatelessWidget {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [Expanded(child: users), const SizedBox(width: 16), Expanded(child: help)],
+        children: [
+          Expanded(child: users),
+          const SizedBox(width: 16),
+          Expanded(child: help),
+        ],
       ),
     );
   }
@@ -352,29 +472,58 @@ class _InfoCard extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: iconColor),
               ),
               const SizedBox(width: 12),
-              Expanded(child: Text(title, style: AppTheme.heading(19, weight: FontWeight.w700))),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTheme.heading(19, weight: FontWeight.w700),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
-          Text(body,
-              style: const TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 15.5, height: 1.7, color: Color(0xFF334155))),
+          Text(
+            body,
+            style: const TextStyle(
+              fontFamily: AppTheme.bodyFont,
+              fontSize: 15.5,
+              height: 1.7,
+              color: Color(0xFF334155),
+            ),
+          ),
           for (final (who, tel) in contacts)
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: Row(
                 children: [
-                  const Icon(Icons.call_rounded, size: 18, color: AppTheme.primary),
+                  const Icon(
+                    Icons.call_rounded,
+                    size: 18,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(text: '$who  ', style: const TextStyle(fontWeight: FontWeight.w700)),
-                        TextSpan(text: tel, style: const TextStyle(color: AppTheme.textSecondary)),
-                      ]),
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '$who  ',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          TextSpan(
+                            text: tel,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                       style: const TextStyle(fontFamily: AppTheme.bodyFont),
                     ),
                   ),
@@ -400,7 +549,11 @@ class _Footer extends StatelessWidget {
       child: Text(
         '© ศูนย์เทคโนโลยีสารสนเทศ กรมทางหลวง $year',
         textAlign: TextAlign.center,
-        style: const TextStyle(fontFamily: AppTheme.bodyFont, color: AppTheme.textSecondary, fontSize: 13),
+        style: const TextStyle(
+          fontFamily: AppTheme.bodyFont,
+          color: AppTheme.textSecondary,
+          fontSize: 13,
+        ),
       ),
     );
   }
