@@ -108,7 +108,8 @@ class _MainShellState extends State<MainShell> {
                   pinned: true,
                   selectedId: _selectedId,
                   onTogglePinned: _togglePinned,
-                  onToggleCollapsed: () => setState(() => _collapsed = !_collapsed),
+                  onToggleCollapsed: () =>
+                      setState(() => _collapsed = !_collapsed),
                   onSelectInternal: _select,
                 ),
                 const Expanded(child: content),

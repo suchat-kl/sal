@@ -57,7 +57,11 @@ class AppTheme {
         displayColor: textPrimary,
       ),
       tooltipTheme: const TooltipThemeData(
-        textStyle: TextStyle(fontFamily: bodyFont, color: Colors.white, fontSize: 13),
+        textStyle: TextStyle(
+          fontFamily: bodyFont,
+          color: Colors.white,
+          fontSize: 13,
+        ),
         decoration: BoxDecoration(
           color: navySoft,
           borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -67,6 +71,15 @@ class AppTheme {
   }
 
   /// ข้อความหัวข้อ
-  static TextStyle heading(double size, {Color color = textPrimary, FontWeight weight = FontWeight.w500}) =>
-      TextStyle(fontFamily: headingFont, fontSize: size, fontWeight: weight, color: color, height: 1.3);
+  static TextStyle heading(
+    double size, {
+    Color color = textPrimary,
+    FontWeight weight = FontWeight.w500,
+  }) => TextStyle(
+    fontFamily: headingFont,
+    fontSize: size,
+    fontWeight: weight,
+    color: color,
+    height: 1.3,
+  );
 }

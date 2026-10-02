@@ -24,8 +24,16 @@ class PayrollIllustration extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             // วงกลมตกแต่งด้านหลัง
-            Positioned(left: 40, top: 10, child: _blob(260, Colors.white.withValues(alpha: 0.10))),
-            Positioned(right: 0, bottom: 0, child: _blob(160, Colors.white.withValues(alpha: 0.08))),
+            Positioned(
+              left: 40,
+              top: 10,
+              child: _blob(260, Colors.white.withValues(alpha: 0.10)),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: _blob(160, Colors.white.withValues(alpha: 0.08)),
+            ),
             // ใบรับรองภาษี (ด้านหลัง เอียงขวา)
             Positioned(
               left: 175,
@@ -51,9 +59,19 @@ class PayrollIllustration extends StatelessWidget {
                   color: AppTheme.accent,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 14, offset: Offset(0, 6))],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33000000),
+                      blurRadius: 14,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.verified_rounded, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.verified_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ],
@@ -62,16 +80,26 @@ class PayrollIllustration extends StatelessWidget {
     );
   }
 
-  static Widget _blob(double size, Color color) =>
-      Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  static Widget _blob(double size, Color color) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  );
 }
 
 /// เส้นแทนบรรทัดข้อความ
-Widget _line(double width, {Color color = const Color(0xFFE2E8F0), double height = 8}) => Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(height / 2)),
-    );
+Widget _line(
+  double width, {
+  Color color = const Color(0xFFE2E8F0),
+  double height = 8,
+}) => Container(
+  width: width,
+  height: height,
+  decoration: BoxDecoration(
+    color: color,
+    borderRadius: BorderRadius.circular(height / 2),
+  ),
+);
 
 class _SlipCard extends StatelessWidget {
   const _SlipCard();
@@ -85,7 +113,13 @@ class _SlipCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 30, offset: Offset(0, 14))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 30,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,8 +129,15 @@ class _SlipCard extends StatelessWidget {
               Container(
                 width: 38,
                 height: 38,
-                decoration: BoxDecoration(color: AppTheme.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.person_rounded, color: AppTheme.primary, size: 22),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: AppTheme.primary,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -105,7 +146,10 @@ class _SlipCard extends StatelessWidget {
                   children: [
                     FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Text('สลิปเงินเดือน', style: AppTheme.heading(14, weight: FontWeight.w700)),
+                      child: Text(
+                        'สลิปเงินเดือน',
+                        style: AppTheme.heading(14, weight: FontWeight.w700),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     _line(70, height: 6),
@@ -118,7 +162,10 @@ class _SlipCard extends StatelessWidget {
           for (final w in const [120.0, 95.0, 135.0]) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [_line(w), _line(36, color: const Color(0xFFCBD5E1))],
+              children: [
+                _line(w),
+                _line(36, color: const Color(0xFFCBD5E1)),
+              ],
             ),
             const SizedBox(height: 12),
           ],
@@ -130,12 +177,24 @@ class _SlipCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text('รับสุทธิ',
-                    style: TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 13, color: AppTheme.textSecondary)),
+                const Text(
+                  'รับสุทธิ',
+                  style: TextStyle(
+                    fontFamily: AppTheme.bodyFont,
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text('฿ 35,800',
-                      style: AppTheme.heading(22, color: AppTheme.primary, weight: FontWeight.w700)),
+                  child: Text(
+                    '฿ 35,800',
+                    style: AppTheme.heading(
+                      22,
+                      color: AppTheme.primary,
+                      weight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -158,18 +217,37 @@ class _TaxCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [BoxShadow(color: Color(0x30000000), blurRadius: 24, offset: Offset(0, 10))],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x30000000),
+            blurRadius: 24,
+            offset: Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: AppTheme.accentSoft, borderRadius: BorderRadius.circular(8)),
-            child: Text('50 ทวิ', style: AppTheme.heading(12, color: const Color(0xFFB45309), weight: FontWeight.w700)),
+            decoration: BoxDecoration(
+              color: AppTheme.accentSoft,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '50 ทวิ',
+              style: AppTheme.heading(
+                12,
+                color: const Color(0xFFB45309),
+                weight: FontWeight.w700,
+              ),
+            ),
           ),
           const SizedBox(height: 10),
-          Text('ใบรับรองภาษี', style: AppTheme.heading(13, weight: FontWeight.w700)),
+          Text(
+            'ใบรับรองภาษี',
+            style: AppTheme.heading(13, weight: FontWeight.w700),
+          ),
           const SizedBox(height: 14),
           for (final w in const [140.0, 110.0, 150.0, 90.0]) ...[
             _line(w, height: 6),
@@ -183,9 +261,16 @@ class _TaxCard extends StatelessWidget {
               height: 46,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5), width: 2),
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.5),
+                  width: 2,
+                ),
               ),
-              child: Icon(Icons.approval_rounded, color: AppTheme.primary.withValues(alpha: 0.7), size: 24),
+              child: Icon(
+                Icons.approval_rounded,
+                color: AppTheme.primary.withValues(alpha: 0.7),
+                size: 24,
+              ),
             ),
           ),
         ],
@@ -207,38 +292,61 @@ class _CoinStack extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           for (var i = 0; i < 4; i++)
-            Positioned(
-              left: 0,
-              bottom: i * 13.0,
-              child: _coinEdge(),
-            ),
-          Positioned(left: 70, bottom: 0, child: Transform.rotate(angle: -math.pi / 14, child: _coinFace(64))),
+            Positioned(left: 0, bottom: i * 13.0, child: _coinEdge()),
+          Positioned(
+            left: 70,
+            bottom: 0,
+            child: Transform.rotate(angle: -math.pi / 14, child: _coinFace(64)),
+          ),
         ],
       ),
     );
   }
 
   Widget _coinEdge() => Container(
-        width: 80,
-        height: 26,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFFFBBF24), Color(0xFFD97706)]),
-          borderRadius: BorderRadius.circular(40),
-          border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
-          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 3))],
+    width: 80,
+    height: 26,
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [Color(0xFFFBBF24), Color(0xFFD97706)],
+      ),
+      borderRadius: BorderRadius.circular(40),
+      border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 6,
+          offset: Offset(0, 3),
         ),
-      );
+      ],
+    ),
+  );
 
   Widget _coinFace(double size) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const RadialGradient(colors: [Color(0xFFFDE68A), Color(0xFFF59E0B), Color(0xFFB45309)]),
-          border: Border.all(color: const Color(0xFFFEF3C7), width: 3),
-          boxShadow: const [BoxShadow(color: Color(0x40000000), blurRadius: 10, offset: Offset(0, 5))],
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: const RadialGradient(
+        colors: [Color(0xFFFDE68A), Color(0xFFF59E0B), Color(0xFFB45309)],
+      ),
+      border: Border.all(color: const Color(0xFFFEF3C7), width: 3),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x40000000),
+          blurRadius: 10,
+          offset: Offset(0, 5),
         ),
-        alignment: Alignment.center,
-        child: Text('฿', style: AppTheme.heading(size * 0.45, color: const Color(0xFF78350F), weight: FontWeight.w700)),
-      );
+      ],
+    ),
+    alignment: Alignment.center,
+    child: Text(
+      '฿',
+      style: AppTheme.heading(
+        size * 0.45,
+        color: const Color(0xFF78350F),
+        weight: FontWeight.w700,
+      ),
+    ),
+  );
 }
