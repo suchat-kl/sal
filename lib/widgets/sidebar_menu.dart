@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/menu_data.dart';
 import '../config/theme.dart';
 import '../utils/link.dart';
+import 'app_logo.dart';
 
 /// เมนูข้าง — ใช้ได้สองแบบเหมือน HTC
 /// * เมนูเลื่อนออก (drawer): จอแคบหรือยังไม่ได้ตรึง
@@ -52,7 +53,11 @@ class _SidebarMenuState extends State<SidebarMenu> {
         setState(() => _open.add(node.id));
         widget.onToggleCollapsed?.call();
       } else {
-        setState(() => _open.contains(node.id) ? _open.remove(node.id) : _open.add(node.id));
+        setState(
+          () => _open.contains(node.id)
+              ? _open.remove(node.id)
+              : _open.add(node.id),
+        );
       }
       return;
     }
@@ -86,7 +91,10 @@ class _SidebarMenuState extends State<SidebarMenu> {
                 const Divider(height: 1, color: Color(0x1FFFFFFF)),
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: _rail ? 10 : 12),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: _rail ? 10 : 12,
+                    ),
                     children: [
                       if (!_rail) _sectionTitle('เมนูหลัก'),
                       for (final node in MenuData.items) ..._buildNode(node),
@@ -119,7 +127,11 @@ class _SidebarMenuState extends State<SidebarMenu> {
         ? IconButton(
             tooltip: _rail ? 'ขยายเมนู' : 'ย่อเมนูเหลือแต่ไอคอน',
             onPressed: widget.onToggleCollapsed,
-            icon: Icon(_rail ? Icons.menu_open_rounded : Icons.menu_rounded, color: Colors.white, size: 22),
+            icon: Icon(
+              _rail ? Icons.menu_open_rounded : Icons.menu_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
           )
         : null;
 
@@ -133,18 +145,13 @@ class _SidebarMenuState extends State<SidebarMenu> {
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.payments_rounded, color: AppTheme.primaryLight, size: 20),
-          ),
-          const SizedBox(width: 10),
+          const AppLogo(size: 34),
+          const SizedBox(width: 14),
           Expanded(
-            child: Text('งานเงินเดือน', style: AppTheme.heading(17, color: Colors.white)),
+            child: Text(
+              'งานเงินเดือน',
+              style: AppTheme.heading(17, color: Colors.white),
+            ),
           ),
           ?pinBtn,
           ?collapseBtn,
@@ -154,18 +161,18 @@ class _SidebarMenuState extends State<SidebarMenu> {
   }
 
   Widget _sectionTitle(String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontFamily: AppTheme.bodyFont,
-            fontSize: 12,
-            letterSpacing: 0.6,
-            color: Colors.white54,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontFamily: AppTheme.bodyFont,
+        fontSize: 12,
+        letterSpacing: 0.6,
+        color: Colors.white54,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
 
   List<Widget> _buildNode(MenuNode node) {
     final selected = node.id == widget.selectedId;
@@ -174,19 +181,33 @@ class _SidebarMenuState extends State<SidebarMenu> {
       return [_railIcon(node, selected)];
     }
     return [
-      _tile(node, selected: selected, trailing: node.isGroup
-          ? AnimatedRotation(
-              turns: open ? 0.5 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.expand_more_rounded, color: Colors.white54, size: 20),
-            )
-          : node.url != null
-              ? const Icon(Icons.open_in_new_rounded, color: Colors.white38, size: 15)
-              : null),
+      _tile(
+        node,
+        selected: selected,
+        trailing: node.isGroup
+            ? AnimatedRotation(
+                turns: open ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: const Icon(
+                  Icons.expand_more_rounded,
+                  color: Colors.white54,
+                  size: 20,
+                ),
+              )
+            : node.url != null
+            ? const Icon(
+                Icons.open_in_new_rounded,
+                color: Colors.white38,
+                size: 15,
+              )
+            : null,
+      ),
       if (node.isGroup)
         AnimatedCrossFade(
           duration: const Duration(milliseconds: 200),
-          crossFadeState: open ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: open
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           firstChild: const SizedBox(width: double.infinity),
           secondChild: Padding(
             padding: const EdgeInsets.only(left: 18),
@@ -198,7 +219,15 @@ class _SidebarMenuState extends State<SidebarMenu> {
               child: Column(
                 children: [
                   for (final c in node.children)
-                    _tile(c, small: true, trailing: const Icon(Icons.open_in_new_rounded, color: Colors.white38, size: 14)),
+                    _tile(
+                      c,
+                      small: true,
+                      trailing: const Icon(
+                        Icons.open_in_new_rounded,
+                        color: Colors.white38,
+                        size: 14,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -207,21 +236,35 @@ class _SidebarMenuState extends State<SidebarMenu> {
     ];
   }
 
-  Widget _tile(MenuNode node, {bool selected = false, bool small = false, Widget? trailing}) {
+  Widget _tile(
+    MenuNode node, {
+    bool selected = false,
+    bool small = false,
+    Widget? trailing,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Material(
-        color: selected ? AppTheme.primary.withValues(alpha: 0.9) : Colors.transparent,
+        color: selected
+            ? AppTheme.primary.withValues(alpha: 0.9)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           hoverColor: Colors.white.withValues(alpha: 0.06),
           onTap: () => _tap(node),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: small ? 9 : 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: small ? 9 : 12,
+            ),
             child: Row(
               children: [
-                Icon(node.icon, size: small ? 18 : 22, color: selected ? Colors.white : AppTheme.primaryLight),
+                Icon(
+                  node.icon,
+                  size: small ? 18 : 22,
+                  color: selected ? Colors.white : AppTheme.primaryLight,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -229,7 +272,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                     style: TextStyle(
                       fontFamily: AppTheme.bodyFont,
                       fontSize: small ? 14 : 15,
-                      color: selected ? Colors.white : Colors.white.withValues(alpha: 0.88),
+                      color: selected
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.88),
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     ),
                   ),
@@ -258,7 +303,11 @@ class _SidebarMenuState extends State<SidebarMenu> {
             onTap: () => _tap(node),
             child: SizedBox(
               height: 50,
-              child: Icon(node.icon, color: selected ? Colors.white : AppTheme.primaryLight, size: 24),
+              child: Icon(
+                node.icon,
+                color: selected ? Colors.white : AppTheme.primaryLight,
+                size: 24,
+              ),
             ),
           ),
         ),
@@ -267,24 +316,28 @@ class _SidebarMenuState extends State<SidebarMenu> {
   }
 
   Widget _buildFooter() => Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.phone_in_talk_rounded, color: AppTheme.accent, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'ฝ่ายบัญชี โทร. 25035, 25036',
-                style: TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 13, color: Colors.white70),
-              ),
+    margin: const EdgeInsets.all(12),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.06),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+    ),
+    child: const Row(
+      children: [
+        Icon(Icons.phone_in_talk_rounded, color: AppTheme.accent, size: 20),
+        SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            'ฝ่ายบัญชี โทร. 25035, 25036',
+            style: TextStyle(
+              fontFamily: AppTheme.bodyFont,
+              fontSize: 13,
+              color: Colors.white70,
             ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
