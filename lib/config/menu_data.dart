@@ -122,7 +122,7 @@ class MenuData {
   static const String historyId = 'history';
 
   /// เมนูของผู้ที่เข้าสู่ระบบแล้ว — เปลี่ยนรหัสผ่านใช้ได้ทุกบทบาท
-  /// ดาวน์โหลด = USER/ADMIN, อัปโหลด = UPLOAD/ADMIN, จัดการผู้ใช้ = ADMIN
+  /// ดาวน์โหลด = USER/UPLOAD/ADMIN, อัปโหลดและประวัติการใช้งาน = UPLOAD/ADMIN, จัดการผู้ใช้ = ADMIN
   static List<MenuNode> userItems({
     required bool isAdmin,
     bool canUpload = false,
@@ -146,6 +146,13 @@ class MenuData {
         title: 'อัปโหลดไฟล์',
         icon: Icons.upload_file_rounded,
         description: 'รายละเอียดการจ่ายเงินประจำเดือนและไฟล์ประกอบการรายงาน',
+      ),
+    if (canUpload)
+      const MenuNode(
+        id: historyId,
+        title: 'ประวัติการใช้งาน',
+        icon: Icons.history_rounded,
+        description: 'ใครดาวน์โหลด อัปโหลด เผยแพร่ หรือลบไฟล์ เมื่อไร',
       ),
     const MenuNode(
       id: changePasswordId,
@@ -171,12 +178,6 @@ class MenuData {
         title: 'กำหนดรหัสผ่านใหม่',
         icon: Icons.lock_reset_rounded,
         description: 'ตั้งรหัสผ่านใหม่ให้ผู้ใช้ที่ลืมรหัสผ่าน',
-      ),
-      MenuNode(
-        id: historyId,
-        title: 'ประวัติการใช้งาน',
-        icon: Icons.history_rounded,
-        description: 'ใครดาวน์โหลด อัปโหลด เผยแพร่ หรือลบไฟล์ เมื่อไร',
       ),
     ],
   ];

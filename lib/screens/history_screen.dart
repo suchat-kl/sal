@@ -9,7 +9,7 @@ import '../widgets/file_widgets.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/simple_table.dart';
 
-/// ประวัติการใช้งาน (ADMIN): ใครดาวน์โหลด/อัปโหลด/เผยแพร่/ลบอะไร เมื่อไร ใหม่สุดก่อน
+/// ประวัติการใช้งาน (UPLOAD/ADMIN): ใครดาวน์โหลด/อัปโหลด/เผยแพร่/ลบอะไร เมื่อไร ใหม่สุดก่อน
 class HistoryScreen extends StatefulWidget {
   final ApiService api;
 
@@ -20,11 +20,11 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  /// ชนิดประวัติ → ชื่อแท็บ (รหัสตรงกับ /api/admin/history/{kind})
+  /// ชนิดประวัติ → ชื่อแท็บ (รหัสตรงกับ /api/upload/history/{kind})
   static const Map<String, String> _kinds = {
-    'downloads': 'การดาวน์โหลด',
+    'downloads': 'การดาวน์โหลด (ทุกไฟล์)',
     'payroll': 'อัปโหลดรายละเอียดการจ่ายเงิน',
-    'common': 'ไฟล์ประกอบ',
+    'common': 'อัปโหลด/ลบไฟล์ประกอบ',
   };
 
   static const Map<String, (String, Color)> _status = {
@@ -138,7 +138,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         );
       case 'common':
         return SimpleTable(
-          emptyText: 'ยังไม่มีประวัติไฟล์ประกอบ',
+          emptyText: 'ยังไม่มีประวัติการอัปโหลดหรือลบไฟล์ประกอบ',
           headers: const ['เมื่อ', 'ผู้ใช้', 'การกระทำ', 'ไฟล์', 'เดือน'],
           flex: const [4, 2, 3, 5, 3],
           rows: [

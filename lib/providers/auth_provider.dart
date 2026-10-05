@@ -8,13 +8,30 @@ class AuthProvider extends ChangeNotifier {
   final ApiService api;
 
   AuthProvider(this.api) {
-    api.onSessionExpired = notifyListeners;
+    api.onSessionExpired = () {
+      _sessionExpired = true;
+      notifyListeners();
+    };
     // เปิดหน้าเว็บใหม่ทั้งที่เข้าสู่ระบบค้างอยู่: อ่านชื่อ/หน่วยงาน/บทบาทล่าสุดมาแทนค่าที่จำไว้
     if (isLoggedIn) {
       api.refreshSession().then((changed) {
         if (changed) notifyListeners();
       });
     }
+  }
+
+  /// ข้อความแจ้งหลังเข้าสู่ระบบ: บัญชีหนึ่งใช้งานได้ทีละเครื่อง (backend เก็บ token ที่ใช้ได้ทีละชุดต่อบัญชี)
+  static const String singleDeviceNotice =
+      'บัญชีนี้ใช้งานได้ทีละเครื่อง หากมีการเข้าสู่ระบบด้วยบัญชีเดียวกันจากเครื่องอื่น '
+      'เครื่องนี้จะถูกออกจากระบบโดยอัตโนมัติ';
+
+  bool _sessionExpired = false;
+
+  /// ถูกออกจากระบบโดยไม่ได้กดเอง (เข้าจากเครื่องอื่น หรือหมดเวลา) — อ่านแล้วล้างค่า
+  bool takeSessionExpired() {
+    final v = _sessionExpired;
+    _sessionExpired = false;
+    return v;
   }
 
   Session? get session => api.session;

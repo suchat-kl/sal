@@ -20,6 +20,9 @@ class FakeBackend implements HttpClientAdapter {
   };
 
   final List<String> calls = [];
+
+  /// จำลองว่าบัญชีนี้ถูกเข้าสู่ระบบจากเครื่องอื่น: token เดิมใช้ไม่ได้และต่ออายุไม่ได้
+  bool kicked = false;
   Map<String, dynamic>? lastBody;
 
   ResponseBody _json(int status, Object body) => ResponseBody.fromString(
@@ -42,6 +45,18 @@ class FakeBackend implements HttpClientAdapter {
     final body = data is Map ? Map<String, dynamic>.from(data) : null;
     lastBody = body ?? lastBody;
 
+    if (path == '/api/auth/login' && body?['username'] == 'locked') {
+      return _json(401, {
+        'success': false,
+        'message': 'บัญชีถูกล็อกชั่วคราวเพราะใส่รหัสผ่านผิด 5 ครั้ง กรุณาลองใหม่ในอีก 10 นาที',
+      });
+    }
+    if (kicked && path == '/api/auth/refresh-token') {
+      return _json(403, {'success': false, 'message': 'กรุณาเข้าสู่ระบบใหม่'});
+    }
+    if (kicked && path != '/api/auth/login') {
+      return _json(401, {'success': false, 'message': 'กรุณาเข้าสู่ระบบ'});
+    }
     if (path == '/api/auth/login') {
       final a = accounts[body!['username']];
       if (a == null || a.password != body['password']) {
@@ -166,6 +181,12 @@ void main() {
     );
     await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
+    // หลังเข้าสู่ระบบมีข้อความแจ้งว่าใช้งานได้ทีละเครื่อง กดรับทราบก่อนทำอย่างอื่น
+    final ack = find.widgetWithText(FilledButton, 'รับทราบ');
+    if (ack.evaluate().isNotEmpty) {
+      await tester.tap(ack);
+      await tester.pumpAndSettle();
+    }
   }
 
   testWidgets(
@@ -645,4 +666,105 @@ void main() {
       expect(find.widgetWithText(TextFormField, 'รหัสผ่านใหม่'), findsNothing);
     },
   );
+
+  testWidgets('หลังเข้าสู่ระบบ แจ้งว่าบัญชีใช้งานได้ทีละเครื่อง', (
+    tester,
+  ) async {
+    await start(tester);
+    await tester.tap(find.text('เข้าสู่ระบบเจ้าหน้าที่'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
+      'user291',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'รหัสผ่าน'),
+      'User@2569x',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsOneWidget);
+    expect(
+      find.textContaining('เครื่องนี้จะถูกออกจากระบบโดยอัตโนมัติ'),
+      findsWidgets,
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'รับทราบ'));
+    await tester.pumpAndSettle();
+    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
+    // ข้อความเดียวกันยังอยู่ในหน้าผู้ใช้งานให้อ่านซ้ำได้
+    expect(find.textContaining('บัญชีนี้ใช้งานได้ทีละเครื่อง'), findsOneWidget);
+  });
+
+  testWidgets(
+    'ถูกบังคับเปลี่ยนรหัสผ่านก่อน แล้วจึงแจ้งเรื่องใช้งานทีละเครื่อง',
+    (tester) async {
+      await start(tester);
+      await tester.tap(find.text('เข้าสู่ระบบเจ้าหน้าที่'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
+        'newbie',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'รหัสผ่าน'),
+        'Temp@1234',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ต้องเปลี่ยนรหัสผ่านก่อนใช้งานต่อ'), findsOneWidget);
+      expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'รหัสผ่านเดิม'),
+        'Temp@1234',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'รหัสผ่านใหม่'),
+        'NewPass@2570',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'ยืนยันรหัสผ่านใหม่'),
+        'NewPass@2570',
+      );
+      await tester.ensureVisible(find.text('บันทึกรหัสผ่านใหม่'));
+      await tester.tap(find.text('บันทึกรหัสผ่านใหม่'));
+      await tester.pumpAndSettle();
+      expect(find.text('ใช้งานได้ทีละเครื่อง'), findsOneWidget);
+    },
+  );
+
+  testWidgets('ถูกเข้าสู่ระบบจากเครื่องอื่น: เครื่องนี้หลุดและบอกเหตุผล', (
+    tester,
+  ) async {
+    await start(tester);
+    await login(tester, 'admin', 'Admin@2569x');
+    backend.kicked = true;
+    await tester.tap(find.text('แก้ไขผู้ใช้งาน'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('เข้าสู่ระบบเจ้าหน้าที่'), findsOneWidget);
+    expect(prefs.getString('sal_access_token'), isNull);
+    expect(
+      find.textContaining('มีการเข้าสู่ระบบด้วยบัญชีนี้จากเครื่องอื่น'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('บัญชีถูกล็อกชั่วคราว: หน้าเข้าสู่ระบบบอกเวลาที่ต้องรอ', (
+    tester,
+  ) async {
+    await start(tester);
+    await tester.tap(find.text('เข้าสู่ระบบเจ้าหน้าที่'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
+      'locked',
+    );
+    await tester.enterText(find.widgetWithText(TextFormField, 'รหัสผ่าน'), 'x');
+    await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('กรุณาลองใหม่ในอีก 10 นาที'), findsOneWidget);
+    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
+  });
 }

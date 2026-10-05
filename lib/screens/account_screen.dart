@@ -71,7 +71,35 @@ class AccountScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: palette.accentSoft,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.devices_other_rounded,
+                color: palette.accent,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  AuthProvider.singleDeviceNotice,
+                  style: TextStyle(
+                    fontFamily: AppTheme.bodyFont,
+                    fontSize: 14.5,
+                    color: palette.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
         Text('เมนูผู้ใช้งาน', style: palette.heading(20)),
         const SizedBox(height: 14),
         LayoutBuilder(

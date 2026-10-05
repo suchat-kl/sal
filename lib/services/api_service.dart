@@ -474,7 +474,7 @@ class ApiService {
         return Map<String, dynamic>.from(res.data as Map);
       });
 
-  /// ประวัติการใช้งาน (ADMIN) [kind] = downloads | payroll | common
+  /// ประวัติการใช้งาน (UPLOAD/ADMIN) [kind] = downloads | payroll | common
   Future<Map<String, dynamic>> history(
     String kind, {
     String? keyword,
@@ -482,7 +482,7 @@ class ApiService {
     int size = 10,
   }) => _call(() async {
     final res = await dio.get(
-      '/api/admin/history/$kind',
+      '/api/upload/history/$kind',
       queryParameters: {
         if (keyword != null && keyword.trim().isNotEmpty)
           'keyword': keyword.trim(),

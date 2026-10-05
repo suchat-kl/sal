@@ -189,7 +189,7 @@ class FakeFiles implements HttpClientAdapter {
         ],
       });
     }
-    if (path.startsWith('/api/admin/history/')) {
+    if (path.startsWith('/api/upload/history/')) {
       lastHistoryQuery = {'kind': path.split('/').last, ...q};
       final items = switch (path.split('/').last) {
         'payroll' => [
@@ -351,6 +351,8 @@ void main() {
     );
     await tester.enterText(find.widgetWithText(TextFormField, 'รหัสผ่าน'), 'x');
     await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'รับทราบ'));
     await tester.pumpAndSettle();
   }
 
@@ -754,7 +756,7 @@ void main() {
     expect(find.text('เผยแพร่อยู่'), findsOneWidget);
     expect(find.textContaining('030 / admin'), findsOneWidget);
 
-    await tapText(tester, 'ไฟล์ประกอบ');
+    await tapText(tester, 'อัปโหลด/ลบไฟล์ประกอบ');
     expect(backend.lastHistoryQuery['kind'], 'common');
     expect(find.text('แทนที่ไฟล์เดิม'), findsOneWidget);
 
@@ -764,8 +766,18 @@ void main() {
     expect(backend.lastHistoryQuery['keyword'], '030');
   });
 
-  testWidgets('ประวัติการใช้งานเห็นเฉพาะ ADMIN', (tester) async {
-    await start(tester, 'uploader');
+  testWidgets(
+    'ประวัติการใช้งาน: ผู้อัปโหลดเห็นและเปิดได้ ผู้ใช้ทั่วไปไม่เห็น',
+    (tester) async {
+      await start(tester, 'uploader');
+      await tapText(tester, 'ประวัติการใช้งาน');
+      expect(backend.lastHistoryQuery['kind'], 'downloads');
+      expect(find.text('291_256909G2.pdf'), findsOneWidget);
+    },
+  );
+
+  testWidgets('ผู้ใช้ทั่วไปไม่มีเมนูประวัติการใช้งาน', (tester) async {
+    await start(tester, 'user291');
     expect(find.text('ประวัติการใช้งาน'), findsNothing);
   });
 }

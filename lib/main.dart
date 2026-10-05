@@ -16,6 +16,7 @@ import 'services/api_service.dart';
 import 'utils/unsaved_guard.dart';
 import 'widgets/app_header.dart';
 import 'widgets/change_password_dialog.dart';
+import 'widgets/form_helpers.dart';
 import 'widgets/login_dialog.dart';
 import 'widgets/sidebar_menu.dart';
 
@@ -158,6 +159,14 @@ class _MainShellState extends State<MainShell> {
         DivCache.clear();
       }
     });
+    // ถูกออกจากระบบโดยไม่ได้กดเอง: บอกเหตุผล ไม่งั้นผู้ใช้จะงงว่าทำไมหลุด
+    if (!_auth.isLoggedIn && _auth.takeSessionExpired()) {
+      showAppMessage(
+        context,
+        'ถูกออกจากระบบ เพราะมีการเข้าสู่ระบบด้วยบัญชีนี้จากเครื่องอื่น หรือไม่ได้ใช้งานนานเกินกำหนด กรุณาเข้าสู่ระบบใหม่',
+        error: true,
+      );
+    }
     _checkMustChangePassword();
   }
 
@@ -194,8 +203,36 @@ class _MainShellState extends State<MainShell> {
     if (ok == true && mounted) {
       setState(() => _selectedId = MenuData.accountId);
       await _checkMustChangePassword();
+      // แจ้งทุกครั้งหลังเข้าสู่ระบบ: บัญชีใช้ได้ทีละเครื่อง (ถ้าถูกบังคับเปลี่ยนรหัสแล้วไม่เปลี่ยน จะออกจากระบบไปแล้ว ไม่ต้องแจ้ง)
+      if (mounted && _auth.isLoggedIn) await _showSingleDeviceNotice();
     }
   }
+
+  Future<void> _showSingleDeviceNotice() => showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      icon: Icon(
+        Icons.devices_other_rounded,
+        size: 40,
+        color: context.appPalette.primary,
+      ),
+      title: Text('ใช้งานได้ทีละเครื่อง', style: AppTheme.heading(19)),
+      content: const Text(
+        AuthProvider.singleDeviceNotice,
+        style: TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 15.5),
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text(
+            'รับทราบ',
+            style: TextStyle(fontFamily: AppTheme.bodyFont),
+          ),
+        ),
+      ],
+    ),
+  );
 
   /// เลือกเมนูภายใน — บางเมนูเปิดเป็น dialog ทับหน้าปัจจุบัน ที่เหลือเปลี่ยนเนื้อหาด้านขวา
   Future<void> _select(String id) async {
@@ -240,7 +277,7 @@ class _MainShellState extends State<MainShell> {
           api: _auth.api,
           mode: UserListMode.edit,
         );
-      case MenuData.historyId when admin:
+      case MenuData.historyId when _auth.isLoggedIn && _auth.canUpload:
         return HistoryScreen(api: _auth.api);
       case MenuData.userResetId when admin:
         return UserListScreen(
