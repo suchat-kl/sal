@@ -61,7 +61,32 @@ class _DownloadScreenState extends State<DownloadScreen> {
       _divText.text = _allLabel;
       _loadDivs();
     }
-    _load();
+    _loadPeriods(jumpToLatest: true);
+  }
+
+  /// เดือนที่มีไฟล์ของหน่วยงานที่กำลังดู ใหม่สุดก่อน
+  List<({int year, int month})> _periods = const [];
+
+  /// โหลดรายการเดือนที่มีไฟล์ แล้วโหลดรายการไฟล์
+  /// [jumpToLatest] = เปิดหน้าครั้งแรก: ไปเดือนล่าสุดที่มีไฟล์เลย ผู้ใช้ไม่ต้องไล่หาเอง
+  Future<void> _loadPeriods({bool jumpToLatest = false}) async {
+    try {
+      final periods = _div == null && !_allDivs
+          ? const <({int year, int month})>[]
+          : await widget.auth.api.downloadPeriods(
+              div: _allDivs ? _div : null,
+              all: _viewAll,
+            );
+      if (!mounted) return;
+      _periods = periods;
+      if (jumpToLatest && periods.isNotEmpty) {
+        _year = periods.first.year;
+        _month = periods.first.month;
+      }
+    } catch (_) {
+      // ไม่ได้รายการเดือนก็ยังใช้หน้านี้ได้ (เลือกเดือนเอง) ข้อผิดพลาดจริงจะแสดงตอนโหลดรายการไฟล์
+    }
+    if (mounted) await _load();
   }
 
   @override
@@ -163,7 +188,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
         onSelected: (d) {
           _div = d['div']!.isEmpty ? null : d['div'];
           _divFocus.unfocus();
-          _load();
+          // เปลี่ยนหน่วยงาน: เดือนที่มีไฟล์เปลี่ยนตาม แต่คงเดือนที่ดูอยู่ไว้
+          _loadPeriods();
         },
         fieldViewBuilder: (context, controller, focusNode, onSubmitted) =>
             TextField(
@@ -232,6 +258,48 @@ class _DownloadScreenState extends State<DownloadScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// ปุ่มลัดไปเดือนที่มีไฟล์ (สูงสุด 12 เดือนล่าสุด)
+  Widget _periodChips() {
+    final palette = context.appPalette;
+    final text = TextStyle(
+      fontFamily: AppTheme.bodyFont,
+      fontSize: 14.5,
+      color: palette.textSecondary,
+    );
+    if (_periods.isEmpty) {
+      return Text(
+        _loading ? '' : 'ยังไม่มีเดือนที่มีไฟล์ให้ดาวน์โหลด',
+        style: text,
+      );
+    }
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text('เดือนที่มีไฟล์:', style: text),
+        for (final p in _periods.take(12))
+          ChoiceChip(
+            label: Text(
+              '${thaiMonths[p.month - 1]} ${p.year}',
+              style: const TextStyle(
+                fontFamily: AppTheme.bodyFont,
+                fontSize: 14,
+              ),
+            ),
+            selected: p.year == _year && p.month == _month,
+            onSelected: _loading
+                ? null
+                : (_) {
+                    _year = p.year;
+                    _month = p.month;
+                    _load();
+                  },
+          ),
+      ],
     );
   }
 
@@ -363,6 +431,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
             _load();
           },
         ),
+        const SizedBox(height: 12),
+        _periodChips(),
         const SizedBox(height: 18),
         if (_error != null) ErrorBox(message: _error!),
         if (_loading)

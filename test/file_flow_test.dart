@@ -16,9 +16,16 @@ class FakeFiles implements HttpClientAdapter {
   static const accounts = {
     'user291': (roles: ['USER'], div: '291', divName: 'ศูนย์สร้างทางลำปาง'),
     'uploader': (roles: ['UPLOAD'], div: null, divName: null),
+    'admin': (roles: ['ADMIN'], div: '060', divName: 'ศูนย์เทคโนโลยีสารสนเทศ'),
   };
 
   final List<String> calls = [];
+
+  /// เดือนที่มีไฟล์ (ตั้งก่อนเปิดแอปในเทสต์ที่ต้องใช้)
+  static List<Map<String, int>> periods = [];
+
+  /// query ของคำขอประวัติล่าสุด
+  Map<String, dynamic> lastHistoryQuery = {};
 
   /// query ของคำขอ /api/download/* ล่าสุด
   Map<String, dynamic> lastDownloadQuery = {};
@@ -148,6 +155,86 @@ class FakeFiles implements HttpClientAdapter {
       return _json(200, {'success': true});
     }
     if (path.startsWith('/api/download/')) lastDownloadQuery = Map.of(q);
+    if (path == '/api/download/periods') return _json(200, periods);
+    if (path == '/api/upload/download-status') {
+      return _json(200, {
+        'year': q['year'],
+        'month': q['month'],
+        'total': 3,
+        'downloaded': 1,
+        'units': [
+          {
+            'div': '291',
+            'divName': 'ศูนย์สร้างทางลำปาง',
+            'types': ['G2'],
+            'downloaded': true,
+            'count': 2,
+            'lastAt': '2026-10-05T09:15:00',
+            'lastBy': '291',
+          },
+          {
+            'div': '293',
+            'divName': 'ศูนย์สร้างทางขอนแก่น',
+            'types': ['G2'],
+            'downloaded': false,
+            'count': 0,
+          },
+          {
+            'div': '294',
+            'divName': 'ศูนย์สร้างทางหล่มสัก',
+            'types': ['G2', 'E'],
+            'downloaded': false,
+            'count': 0,
+          },
+        ],
+      });
+    }
+    if (path.startsWith('/api/admin/history/')) {
+      lastHistoryQuery = {'kind': path.split('/').last, ...q};
+      final items = switch (path.split('/').last) {
+        'payroll' => [
+          {
+            'year': 2569,
+            'month': 9,
+            'type': 'G2',
+            'status': 'PUBLISHED',
+            'fileName': '256909G2.pdf',
+            'totalPages': 804,
+            'uploadedBy': '030',
+            'uploadedAt': '2026-10-05T14:30:00',
+            'publishedBy': 'admin',
+            'publishedAt': '2026-10-05T14:35:00',
+          },
+        ],
+        'common' => [
+          {
+            'username': '030',
+            'action': 'REPLACE',
+            'year': 2569,
+            'month': 9,
+            'file': 'ประกาศ.docx',
+            'at': '2026-10-05T10:00:00',
+          },
+        ],
+        _ => [
+          {
+            'username': '291',
+            'userDiv': '291',
+            'div': '291',
+            'year': 2569,
+            'month': 9,
+            'file': '291_256909G2.pdf',
+            'at': '2026-10-05T09:15:00',
+          },
+        ],
+      };
+      return _json(200, {
+        'items': items,
+        'currentPage': 0,
+        'pageSize': 10,
+        'totalItems': items.length,
+      });
+    }
     if (path == '/api/download/divs') {
       return _json(200, [
         {'div': '291', 'divname': 'ศูนย์สร้างทางลำปาง'},
@@ -231,6 +318,7 @@ void main() {
 
   setUp(() {
     saved.clear();
+    FakeFiles.periods = [];
     FileSaver.override = (name, bytes) => saved[name] = bytes;
   });
   tearDown(() {
@@ -581,4 +669,103 @@ void main() {
       expect(find.text('291_256910G2.pdf'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'ดาวน์โหลด: เปิดมาที่เดือนล่าสุดที่มีไฟล์ และมีปุ่มลัดเดือนที่มีไฟล์',
+    (tester) async {
+      FakeFiles.periods = [
+        {'year': 2569, 'month': 9},
+        {'year': 2569, 'month': 7},
+      ];
+      await start(tester, 'user291');
+      await tapText(tester, 'ดาวน์โหลดไฟล์');
+
+      expect(backend.calls, contains('GET /api/download/periods'));
+      // ไม่ต้องเลือกเอง: ไปเดือนล่าสุดที่มีไฟล์ (ก.ย. 2569) ทันที
+      expect(backend.lastDownloadQuery['year'], 2569);
+      expect(backend.lastDownloadQuery['month'], 9);
+      expect(
+        find.textContaining('ดาวน์โหลดรวมทุกไฟล์ของเดือน กันยายน 2569'),
+        findsOneWidget,
+      );
+      expect(find.text('เดือนที่มีไฟล์:'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, 'กันยายน 2569'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'กรกฎาคม 2569'));
+      await tester.pumpAndSettle();
+      expect(backend.lastDownloadQuery['month'], 7);
+      expect(
+        find.textContaining('ดาวน์โหลดรวมทุกไฟล์ของเดือน กรกฎาคม 2569'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('ดาวน์โหลด: ยังไม่มีเดือนไหนมีไฟล์ บอกผู้ใช้ตรง ๆ', (
+    tester,
+  ) async {
+    await start(tester, 'user291');
+    await tapText(tester, 'ดาวน์โหลดไฟล์');
+    expect(find.text('ยังไม่มีเดือนที่มีไฟล์ให้ดาวน์โหลด'), findsOneWidget);
+  });
+
+  testWidgets(
+    'อัปโหลด: สถานะการดาวน์โหลดของหน่วยงาน กรองยังไม่ดาวน์โหลด/ดาวน์โหลดแล้ว',
+    (tester) async {
+      await start(tester, 'uploader');
+      await tapText(tester, 'อัปโหลดไฟล์');
+
+      expect(find.text('สถานะการดาวน์โหลดของหน่วยงาน'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'ดาวน์โหลดแล้ว 1 จาก 3 หน่วยงาน (ยังไม่ดาวน์โหลด 2)',
+        ),
+        findsOneWidget,
+      );
+      // ค่าเริ่มต้นแสดงหน่วยงานที่ยังไม่ดาวน์โหลด (กลุ่มที่ต้องตาม)
+      expect(find.text('293 ศูนย์สร้างทางขอนแก่น'), findsOneWidget);
+      expect(find.text('294 ศูนย์สร้างทางหล่มสัก'), findsOneWidget);
+      expect(find.text('291 ศูนย์สร้างทางลำปาง'), findsNothing);
+      expect(find.text('G2, E'), findsOneWidget);
+
+      await tapText(tester, 'ดาวน์โหลดแล้ว');
+      expect(find.text('291 ศูนย์สร้างทางลำปาง'), findsOneWidget);
+      expect(find.text('293 ศูนย์สร้างทางขอนแก่น'), findsNothing);
+      expect(find.textContaining('โดย 291 (2 ครั้ง)'), findsOneWidget);
+
+      await tapText(tester, 'ทั้งหมด');
+      expect(find.text('291 ศูนย์สร้างทางลำปาง'), findsOneWidget);
+      expect(find.text('294 ศูนย์สร้างทางหล่มสัก'), findsOneWidget);
+    },
+  );
+
+  testWidgets('ADMIN: หน้าประวัติการใช้งาน สามแท็บและค้นหา', (tester) async {
+    await start(tester, 'admin');
+    await tapText(tester, 'ประวัติการใช้งาน');
+
+    // แท็บแรก: การดาวน์โหลด
+    expect(backend.lastHistoryQuery['kind'], 'downloads');
+    expect(find.text('291_256909G2.pdf'), findsOneWidget);
+    expect(find.text('5 ตุลาคม 2569 09:15'), findsOneWidget);
+
+    await tapText(tester, 'อัปโหลดรายละเอียดการจ่ายเงิน');
+    expect(backend.lastHistoryQuery['kind'], 'payroll');
+    expect(find.text('256909G2.pdf'), findsOneWidget);
+    expect(find.text('เผยแพร่อยู่'), findsOneWidget);
+    expect(find.textContaining('030 / admin'), findsOneWidget);
+
+    await tapText(tester, 'ไฟล์ประกอบ');
+    expect(backend.lastHistoryQuery['kind'], 'common');
+    expect(find.text('แทนที่ไฟล์เดิม'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'ค้นหา'), '030');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(backend.lastHistoryQuery['keyword'], '030');
+  });
+
+  testWidgets('ประวัติการใช้งานเห็นเฉพาะ ADMIN', (tester) async {
+    await start(tester, 'uploader');
+    expect(find.text('ประวัติการใช้งาน'), findsNothing);
+  });
 }

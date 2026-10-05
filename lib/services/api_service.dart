@@ -447,4 +447,49 @@ class ApiService {
           rethrow;
         }
       });
+
+  /// เดือนที่มีไฟล์ให้ดาวน์โหลด ใหม่สุดก่อน [{year, month}]
+  /// [div] / [all] ใช้ได้เฉพาะ ADMIN/UPLOAD ผู้ใช้ทั่วไปได้ของหน่วยงานตัวเอง
+  Future<List<({int year, int month})>> downloadPeriods({
+    String? div,
+    bool all = false,
+  }) => _call(() async {
+    final res = await dio.get(
+      '/api/download/periods',
+      queryParameters: {'div': ?div, if (all) 'all': true},
+    );
+    return [
+      for (final p in res.data as List)
+        (year: p['year'] as int, month: p['month'] as int),
+    ];
+  });
+
+  /// หน่วยงานไหนดาวน์โหลดไฟล์ของเดือนนี้แล้ว/ยัง (UPLOAD/ADMIN)
+  Future<Map<String, dynamic>> downloadStatus(int year, int month) =>
+      _call(() async {
+        final res = await dio.get(
+          '/api/upload/download-status',
+          queryParameters: {'year': year, 'month': month},
+        );
+        return Map<String, dynamic>.from(res.data as Map);
+      });
+
+  /// ประวัติการใช้งาน (ADMIN) [kind] = downloads | payroll | common
+  Future<Map<String, dynamic>> history(
+    String kind, {
+    String? keyword,
+    int page = 0,
+    int size = 10,
+  }) => _call(() async {
+    final res = await dio.get(
+      '/api/admin/history/$kind',
+      queryParameters: {
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+        'page': page,
+        'size': size,
+      },
+    );
+    return Map<String, dynamic>.from(res.data as Map);
+  });
 }
