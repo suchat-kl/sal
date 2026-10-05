@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../config/menu_data.dart';
@@ -27,14 +29,17 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 28),
                   Text(
                     'บริการทั้งหมด',
-                    style: AppTheme.heading(20, weight: FontWeight.w700),
+                    style: context.appPalette.heading(
+                      20,
+                      weight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'เลือกระบบที่ต้องการ ระบบจะเปิดในแท็บใหม่',
                     style: TextStyle(
                       fontFamily: AppTheme.bodyFont,
-                      color: AppTheme.textSecondary,
+                      color: context.appPalette.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -93,7 +98,7 @@ class _Hero extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           'งานเงินเดือน',
-          style: AppTheme.heading(
+          style: context.appPalette.heading(
             wide ? 40 : 32,
             color: Colors.white,
             weight: FontWeight.w700,
@@ -116,8 +121,8 @@ class _Hero extends StatelessWidget {
           children: [
             FilledButton.icon(
               style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.accent,
-                foregroundColor: AppTheme.navy,
+                backgroundColor: context.appPalette.accent,
+                foregroundColor: context.appPalette.navy,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,
@@ -163,7 +168,7 @@ class _Hero extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        gradient: AppTheme.heroGradient,
+        gradient: context.appPalette.heroGradient,
         borderRadius: BorderRadius.circular(28),
         boxShadow: const [
           BoxShadow(
@@ -275,15 +280,34 @@ class _ShortcutCard extends StatefulWidget {
 }
 
 class _ShortcutCardState extends State<_ShortcutCard> {
+  final _random = Random();
   bool _hover = false;
+  Offset _hoverOffset = Offset.zero;
+
+  void _startHover() {
+    final distance = _random.nextBool() ? -8.0 : 8.0;
+    setState(() {
+      _hover = true;
+      _hoverOffset = _random.nextBool()
+          ? Offset(distance, 0)
+          : Offset(0, distance);
+    });
+  }
+
+  void _endHover() {
+    setState(() {
+      _hover = false;
+      _hoverOffset = Offset.zero;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final m = widget.node;
     return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      // ชี้เมาส์: การ์ดลอยขึ้นและขยายเล็กน้อย
+      onEnter: (_) => _startHover(),
+      onExit: (_) => _endHover(),
+      // ชี้เมาส์: การ์ดขยับแบบสุ่มและขยายเล็กน้อย
       child: AnimatedScale(
         scale: _hover ? 1.03 : 1.0,
         duration: const Duration(milliseconds: 220),
@@ -291,19 +315,23 @@ class _ShortcutCardState extends State<_ShortcutCard> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0, _hover ? -8 : 0, 0),
+          transform: Matrix4.translationValues(
+            _hoverOffset.dx,
+            _hoverOffset.dy,
+            0,
+          ),
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: context.appPalette.surface,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: _hover
-                  ? AppTheme.primary.withValues(alpha: 0.5)
-                  : AppTheme.border,
+                  ? context.appPalette.primary.withValues(alpha: 0.5)
+                  : context.appPalette.border,
             ),
             boxShadow: [
               BoxShadow(
                 color: _hover
-                    ? const Color(0x220D9488)
+                    ? context.appPalette.primary.withValues(alpha: 0.13)
                     : const Color(0x0A0F172A),
                 blurRadius: _hover ? 24 : 10,
                 offset: const Offset(0, 8),
@@ -332,15 +360,19 @@ class _ShortcutCardState extends State<_ShortcutCard> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              gradient: _hover ? AppTheme.heroGradient : null,
-                              color: _hover ? null : AppTheme.primaryLight,
+                              gradient: _hover
+                                  ? context.appPalette.heroGradient
+                                  : null,
+                              color: _hover
+                                  ? null
+                                  : context.appPalette.primaryLight,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Icon(
                               m.icon,
                               color: _hover
                                   ? Colors.white
-                                  : AppTheme.primaryDark,
+                                  : context.appPalette.primaryDark,
                               size: 26,
                             ),
                           ),
@@ -349,8 +381,10 @@ class _ShortcutCardState extends State<_ShortcutCard> {
                         Icon(
                           Icons.arrow_outward_rounded,
                           color: _hover
-                              ? AppTheme.primary
-                              : AppTheme.textSecondary.withValues(alpha: 0.5),
+                              ? context.appPalette.primary
+                              : context.appPalette.textSecondary.withValues(
+                                  alpha: 0.5,
+                                ),
                           size: 20,
                         ),
                       ],
@@ -358,15 +392,53 @@ class _ShortcutCardState extends State<_ShortcutCard> {
                     const SizedBox(height: 14),
                     Text(
                       m.title,
-                      style: AppTheme.heading(16, weight: FontWeight.w500),
+                      style: context.appPalette.heading(
+                        16,
+                        weight: FontWeight.w500,
+                      ),
                     ),
+                    if (m.statusLabel != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.appPalette.accentSoft,
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.science_outlined,
+                              size: 15,
+                              color: Color(0xFFB45309),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                m.statusLabel!,
+                                style: const TextStyle(
+                                  fontFamily: AppTheme.bodyFont,
+                                  fontSize: 12,
+                                  color: Color(0xFF92400E),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     Text(
                       m.description ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: AppTheme.bodyFont,
                         fontSize: 13.5,
-                        color: AppTheme.textSecondary,
+                        color: context.appPalette.textSecondary,
                         height: 1.5,
                       ),
                     ),
@@ -391,8 +463,8 @@ class _InfoSections extends StatelessWidget {
   Widget build(BuildContext context) {
     final users = _InfoCard(
       icon: Icons.groups_2_rounded,
-      iconColor: AppTheme.primary,
-      iconBg: AppTheme.primaryLight,
+      iconColor: context.appPalette.primary,
+      iconBg: context.appPalette.primaryLight,
       title: 'ผู้ใช้งานระบบประกอบด้วย',
       body:
           'เจ้าหน้าที่ฝ่ายบัญชีของแต่ละหน่วยงาน ใช้ดาวน์โหลดรายละเอียดการจ่ายเงิน และภาษีประจำปี '
@@ -401,7 +473,7 @@ class _InfoSections extends StatelessWidget {
     final help = _InfoCard(
       icon: Icons.support_agent_rounded,
       iconColor: const Color(0xFFB45309),
-      iconBg: AppTheme.accentSoft,
+      iconBg: context.appPalette.accentSoft,
       title: 'สอบถามปัญหาเพิ่มเติม',
       body: 'สอบถามผ่านระบบ Smart Helpdesk ศูนย์เทคโนโลยีสารสนเทศ กรมทางหลวง',
       contacts: const [
@@ -460,9 +532,9 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: context.appPalette.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: context.appPalette.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +554,10 @@ class _InfoCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTheme.heading(19, weight: FontWeight.w700),
+                  style: context.appPalette.heading(
+                    19,
+                    weight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -490,11 +565,11 @@ class _InfoCard extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             body,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: AppTheme.bodyFont,
               fontSize: 15.5,
               height: 1.7,
-              color: Color(0xFF334155),
+              color: context.appPalette.textSecondary,
             ),
           ),
           for (final (who, tel) in contacts)
@@ -502,10 +577,10 @@ class _InfoCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.call_rounded,
                     size: 18,
-                    color: AppTheme.primary,
+                    color: context.appPalette.primary,
                   ),
                   const SizedBox(width: 8),
                   Flexible(
@@ -518,8 +593,8 @@ class _InfoCard extends StatelessWidget {
                           ),
                           TextSpan(
                             text: tel,
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
+                            style: TextStyle(
+                              color: context.appPalette.textSecondary,
                             ),
                           ),
                         ],
@@ -548,9 +623,9 @@ class _Footer extends StatelessWidget {
       child: Text(
         '© ศูนย์เทคโนโลยีสารสนเทศ กรมทางหลวง $year',
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: AppTheme.bodyFont,
-          color: AppTheme.textSecondary,
+          color: context.appPalette.textSecondary,
           fontSize: 13,
         ),
       ),
