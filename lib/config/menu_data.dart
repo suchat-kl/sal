@@ -117,14 +117,35 @@ class MenuData {
   static const String userCreateId = 'user-create';
   static const String userEditId = 'user-edit';
   static const String userResetId = 'user-reset';
+  static const String uploadId = 'upload';
+  static const String downloadId = 'download';
 
-  /// เมนูของผู้ที่เข้าสู่ระบบแล้ว — เปลี่ยนรหัสผ่านใช้ได้ทุกบทบาท ที่เหลือเฉพาะ ADMIN
-  static List<MenuNode> userItems({required bool isAdmin}) => [
+  /// เมนูของผู้ที่เข้าสู่ระบบแล้ว — เปลี่ยนรหัสผ่านใช้ได้ทุกบทบาท
+  /// ดาวน์โหลด = USER/ADMIN, อัปโหลด = UPLOAD/ADMIN, จัดการผู้ใช้ = ADMIN
+  static List<MenuNode> userItems({
+    required bool isAdmin,
+    bool canUpload = false,
+    bool canDownload = false,
+  }) => [
     const MenuNode(
       id: accountId,
       title: 'หน้าผู้ใช้งาน',
       icon: Icons.account_circle_rounded,
     ),
+    if (canDownload)
+      const MenuNode(
+        id: downloadId,
+        title: 'ดาวน์โหลดไฟล์',
+        icon: Icons.download_rounded,
+        description: 'รายละเอียดการจ่ายเงินของหน่วยงานและไฟล์ประกอบ',
+      ),
+    if (canUpload)
+      const MenuNode(
+        id: uploadId,
+        title: 'อัปโหลดไฟล์',
+        icon: Icons.upload_file_rounded,
+        description: 'รายละเอียดการจ่ายเงินประจำเดือนและไฟล์ประกอบการรายงาน',
+      ),
     const MenuNode(
       id: changePasswordId,
       title: 'เปลี่ยนรหัสผ่าน',

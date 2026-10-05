@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../utils/unsaved_guard.dart';
 import '../widgets/form_helpers.dart';
 
 /// รายชื่อหน่วยงานจาก collection div_dept โหลดครั้งเดียวต่อการเข้าสู่ระบบ (163 รายการ ไม่เปลี่ยนบ่อย)
@@ -84,7 +85,49 @@ class _UserFormScreenState extends State<UserFormScreen> {
   @override
   void initState() {
     super.initState();
+    _initial = _snapshot();
+    UnsavedGuard.register(_confirmLeave);
     _loadDivs();
+  }
+
+  /// ค่าทุกช่องตอนเปิดหน้าจอ ใช้เทียบว่ามีการแก้ไขหรือยัง
+  late final String _initial;
+
+  String _snapshot() => [
+    _username.text,
+    _fullName.text,
+    _email.text,
+    _phone.text,
+    _password.text,
+    _confirm.text,
+    _div ?? '',
+    (_roles.toList()..sort()).join(','),
+    _active,
+    _locked,
+  ].join('\u0001');
+
+  bool get _dirty => _snapshot() != _initial;
+
+  /// ออกจากหน้าจอนี้ได้ไหม: มีการแก้ไขค้างให้ถามก่อน เลือกบันทึกแล้วบันทึกไม่ผ่าน = ยังออกไม่ได้
+  /// [leave] = ผู้เรียกจะพาออกเอง (เมนูข้าง/ออกจากระบบ) บันทึกสำเร็จจึงไม่ต้องเรียก onSaved ซ้ำ
+  Future<bool> _confirmLeave() async {
+    if (_saving) return false;
+    if (!_dirty) return true;
+    final choice = await askUnsaved(
+      context,
+      saveLabel: _isNew ? 'สร้างผู้ใช้งาน' : 'บันทึก',
+    );
+    if (!mounted) return false;
+    return switch (choice) {
+      UnsavedChoice.stay => false,
+      UnsavedChoice.discard => true,
+      UnsavedChoice.save => await _submit(notify: false),
+    };
+  }
+
+  /// กดปิด (X) / ยกเลิก / ล้างฟอร์ม
+  Future<void> _close() async {
+    if (await _confirmLeave() && mounted) widget.onCancel();
   }
 
   Future<void> _loadDivs() async {
@@ -118,6 +161,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
     ]) {
       c.dispose();
     }
+    UnsavedGuard.unregister(_confirmLeave);
     _divFocus.dispose();
     super.dispose();
   }
@@ -130,13 +174,14 @@ class _UserFormScreenState extends State<UserFormScreen> {
     return _divs.where((d) => norm(DivCache.label(d)).contains(q)).take(30);
   }
 
-  Future<void> _submit() async {
-    if (_saving) return;
+  /// บันทึก คืน true เมื่อสำเร็จ — [notify] = แจ้งหน้าจอแม่ให้พาไปหน้าถัดไป
+  Future<bool> _submit({bool notify = true}) async {
+    if (_saving) return false;
     final valid = _formKey.currentState!.validate();
     final problem = _roles.isEmpty ? 'กรุณาเลือกบทบาทอย่างน้อย 1 บทบาท' : null;
     if (!valid || problem != null) {
       setState(() => _error = problem);
-      return;
+      return false;
     }
     setState(() {
       _saving = true;
@@ -159,20 +204,26 @@ class _UserFormScreenState extends State<UserFormScreen> {
       } else {
         await widget.api.updateUser(widget.user!['id'] as String, body);
       }
-      if (!mounted) return;
+      if (!mounted) return true;
       showAppMessage(
         context,
         _isNew
             ? 'สร้างผู้ใช้ ${body['username']} สำเร็จ'
             : 'บันทึกข้อมูลผู้ใช้ ${body['username']} สำเร็จ',
       );
-      widget.onSaved();
+      if (notify) {
+        widget.onSaved();
+      } else {
+        setState(() => _saving = false);
+      }
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       setState(() {
         _error = e.toString();
         _saving = false;
       });
+      return false;
     }
   }
 
@@ -294,27 +345,36 @@ class _UserFormScreenState extends State<UserFormScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Row(
-          children: [
-            if (!_isNew)
-              IconButton(
-                tooltip: 'กลับไปรายการผู้ใช้',
-                icon: const Icon(Icons.arrow_back_rounded),
-                onPressed: _saving ? null : widget.onCancel,
-              ),
-            Icon(
-              _isNew ? Icons.person_add_alt_1_rounded : Icons.manage_accounts,
-              color: palette.primary,
-              size: 30,
+        // หัวหน้าจอกว้างเท่าการ์ดฟอร์ม ปุ่มปิด (X) จึงอยู่มุมขวาบนของฟอร์มพอดี
+        Align(
+          alignment: Alignment.topLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Row(
+              children: [
+                Icon(
+                  _isNew
+                      ? Icons.person_add_alt_1_rounded
+                      : Icons.manage_accounts,
+                  color: palette.primary,
+                  size: 30,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _isNew ? 'สร้างผู้ใช้งาน' : 'แก้ไขผู้ใช้งาน',
+                    style: palette.heading(24),
+                  ),
+                ),
+                if (!_isNew)
+                  IconButton(
+                    tooltip: 'ปิด',
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: _saving ? null : _close,
+                  ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _isNew ? 'สร้างผู้ใช้งาน' : 'แก้ไขผู้ใช้งาน',
-                style: palette.heading(24),
-              ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 4),
         Text(
@@ -536,7 +596,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                         loading: _saving,
                         onSubmit: _submit,
                         cancelLabel: _isNew ? 'ล้างฟอร์ม' : 'ยกเลิก',
-                        onCancel: widget.onCancel,
+                        onCancel: _close,
                       ),
                     ],
                   ),

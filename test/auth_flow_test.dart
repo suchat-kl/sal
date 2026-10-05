@@ -55,7 +55,10 @@ class FakeBackend implements HttpClientAdapter {
         'refresh_token': 'refresh-${body['username']}',
         'username': body['username'],
         'full_name': 'ผู้ใช้ ${body['username']}',
-        'div': a.roles.contains('USER') ? '291' : null,
+        'div': a.roles.contains('USER') ? '291' : '060',
+        'div_name': a.roles.contains('USER')
+            ? 'ศูนย์สร้างทางลำปาง'
+            : 'ศูนย์เทคโนโลยีสารสนเทศ',
         'roles': a.roles,
         if (a.mustChange) 'must_change_password': true,
       });
@@ -64,10 +67,21 @@ class FakeBackend implements HttpClientAdapter {
       return _json(401, {'success': false, 'message': 'กรุณาเข้าสู่ระบบ'});
     }
     if (path == '/api/auth/logout') return _json(200, {'success': true});
+    if (path == '/api/auth/me') {
+      // ข้อมูลล่าสุดจาก backend: ผู้ดูแลเปลี่ยนหน่วยงานของ admin ไปแล้วหลังเข้าสู่ระบบครั้งก่อน
+      return _json(200, {
+        'username': 'admin',
+        'full_name': 'ผู้ใช้ admin',
+        'div': '293',
+        'div_name': 'ศูนย์สร้างทางขอนแก่น',
+        'roles': ['ADMIN'],
+        'must_change_password': false,
+      });
+    }
     if (path == '/api/auth/changepassword') {
       return _json(200, {'success': true, 'message': 'เปลี่ยนรหัสผ่านสำเร็จ'});
     }
-    if (path == '/api/admin/divs') {
+    if (path == '/api/download/divs') {
       return _json(200, [
         {'div': '291', 'divname': 'ศูนย์สร้างทางลำปาง'},
         {'div': '293', 'divname': 'ศูนย์สร้างทางขอนแก่น'},
@@ -173,6 +187,11 @@ void main() {
     await login(tester, 'admin', 'Admin@2569x');
 
     expect(find.text('ยินดีต้อนรับ คุณผู้ใช้ admin'), findsWidgets);
+    // แถบต้อนรับแสดงรหัสพร้อมชื่อหน่วยงาน
+    expect(
+      find.textContaining('หน่วยงาน 060 ศูนย์เทคโนโลยีสารสนเทศ'),
+      findsOneWidget,
+    );
     expect(find.text('เมนูผู้ใช้งาน'), findsOneWidget);
     for (final t in [
       'เปลี่ยนรหัสผ่าน',
@@ -272,7 +291,7 @@ void main() {
       // หน้าแก้ไขแสดงแทนรายการ ไม่มี dialog และเมนูข้างยังอยู่
       expect(find.byType(Dialog), findsNothing);
       expect(find.byType(SidebarMenu), findsOneWidget);
-      expect(find.byTooltip('กลับไปรายการผู้ใช้'), findsOneWidget);
+      expect(find.byTooltip('ปิด'), findsOneWidget);
       // ช่องหน่วยงานเติมรหัส+ชื่อจาก div_dept ให้แล้ว
       expect(
         tester
@@ -296,7 +315,7 @@ void main() {
       expect(backend.lastBody!['div'], '291');
       expect(backend.lastBody!['roles'], ['USER']);
       // บันทึกแล้วกลับหน้ารายการ
-      expect(find.byTooltip('กลับไปรายการผู้ใช้'), findsNothing);
+      expect(find.byTooltip('ปิด'), findsNothing);
       expect(find.textContaining('สมชาย ใจดี'), findsOneWidget);
     },
   );
@@ -411,5 +430,219 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('เมนูผู้ใช้งาน'), findsOneWidget);
     expect(find.text('เข้าสู่ระบบเจ้าหน้าที่'), findsNothing);
+    // เปิดใหม่แล้วอ่านข้อมูลล่าสุดจาก backend มาแทนค่าที่จำไว้
+    expect(backend.calls, contains('GET /api/auth/me'));
+    expect(
+      find.textContaining('หน่วยงาน 293 ศูนย์สร้างทางขอนแก่น'),
+      findsOneWidget,
+    );
   });
+
+  Future<void> openEdit(WidgetTester tester) async {
+    await start(tester);
+    await login(tester, 'admin', 'Admin@2569x');
+    await tester.tap(find.text('แก้ไขผู้ใช้งาน'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'แก้ไข'));
+    await tester.pumpAndSettle();
+  }
+
+  const unsavedTitle = 'ยังไม่ได้บันทึกการแก้ไข';
+
+  testWidgets('แก้ไขผู้ใช้: ไม่ได้แก้อะไร กดปิด (X) แล้วปิดเลย ไม่ถาม', (
+    tester,
+  ) async {
+    await openEdit(tester);
+    // เป็นปุ่มปิดรูป X ไม่ใช่ลูกศรย้อนกลับ
+    expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+    await tester.tap(find.byTooltip('ปิด'));
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsNothing);
+    expect(find.byTooltip('ปิด'), findsNothing);
+    expect(find.textContaining('สมชาย ใจดี'), findsOneWidget);
+  });
+
+  testWidgets('แก้ไขผู้ใช้: แก้แล้วกดปิด (X) ถามก่อน — แก้ไขต่อ / ไม่บันทึก', (
+    tester,
+  ) async {
+    await openEdit(tester);
+    final name = find.widgetWithText(TextFormField, 'ชื่อ-นามสกุล');
+    await tester.enterText(name, 'สมชาย แก้ไขแล้ว');
+    await tester.tap(find.byTooltip('ปิด'));
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsOneWidget);
+
+    // กลับไปแก้ไขต่อ: ยังอยู่หน้าเดิม ค่าที่พิมพ์ไม่หาย
+    await tester.tap(find.widgetWithText(TextButton, 'กลับไปแก้ไขต่อ'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('ปิด'), findsOneWidget);
+    expect(
+      tester.widget<TextFormField>(name).controller!.text,
+      'สมชาย แก้ไขแล้ว',
+    );
+
+    // ไม่บันทึก: กลับรายการ ไม่มีการส่งไป backend
+    await tester.tap(find.byTooltip('ปิด'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ไม่บันทึก'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('ปิด'), findsNothing);
+    expect(find.textContaining('สมชาย ใจดี'), findsOneWidget);
+    expect(backend.calls, isNot(contains('PUT /api/admin/users/u1')));
+  });
+
+  testWidgets('แก้ไขผู้ใช้: แก้แล้วกดยกเลิก เลือกบันทึก = บันทึกแล้วปิด', (
+    tester,
+  ) async {
+    await openEdit(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'ชื่อ-นามสกุล'),
+      'สมชาย แก้ไขแล้ว',
+    );
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'บันทึก').last);
+    await tester.pumpAndSettle();
+
+    expect(backend.calls, contains('PUT /api/admin/users/u1'));
+    expect(backend.lastBody!['fullName'], 'สมชาย แก้ไขแล้ว');
+    expect(find.byTooltip('ปิด'), findsNothing);
+  });
+
+  testWidgets('แก้ไขผู้ใช้: เลือกบันทึกแต่ข้อมูลไม่ผ่าน ยังอยู่หน้าเดิม', (
+    tester,
+  ) async {
+    await openEdit(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'ชื่อ-นามสกุล'),
+      'ก',
+    );
+    await tester.tap(find.byTooltip('ปิด'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'บันทึก').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('อย่างน้อย 3 ตัวอักษร'), findsOneWidget);
+    expect(find.byTooltip('ปิด'), findsOneWidget);
+    expect(backend.calls, isNot(contains('PUT /api/admin/users/u1')));
+  });
+
+  testWidgets('แก้ไขค้างไว้แล้วไปเมนูอื่นหรือออกจากระบบ ก็ถามก่อน', (
+    tester,
+  ) async {
+    await openEdit(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'ชื่อ-นามสกุล'),
+      'สมชาย แก้ไขแล้ว',
+    );
+    // ไปหน้าอื่นจากปุ่มชื่อผู้ใช้
+    await tester.tap(find.byTooltip('บัญชีผู้ใช้'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('หน้าผู้ใช้งาน').last);
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'กลับไปแก้ไขต่อ'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('ปิด'), findsOneWidget);
+    expect(find.text('เมนูผู้ใช้งาน'), findsNothing);
+
+    // ออกจากระบบ: เลือกไม่บันทึกแล้วจึงออก
+    await tester.tap(find.byTooltip('บัญชีผู้ใช้'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ออกจากระบบ').last);
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsOneWidget);
+    expect(prefs.getString('sal_access_token'), isNotNull);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ไม่บันทึก'));
+    await tester.pumpAndSettle();
+    expect(find.text('เข้าสู่ระบบเจ้าหน้าที่'), findsOneWidget);
+    expect(backend.calls, isNot(contains('PUT /api/admin/users/u1')));
+  });
+
+  testWidgets(
+    'สร้างผู้ใช้: กรอกค้างแล้วไปเมนูอื่น ถามก่อน เลือกไม่บันทึกจึงไป',
+    (tester) async {
+      await start(tester);
+      await login(tester, 'admin', 'Admin@2569x');
+      await tester.tap(find.text('สร้างผู้ใช้งาน'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
+        'kk01',
+      );
+      await tester.tap(find.byTooltip('บัญชีผู้ใช้'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('หน้าผู้ใช้งาน').last);
+      await tester.pumpAndSettle();
+      expect(find.text(unsavedTitle), findsOneWidget);
+      await tester.tap(find.widgetWithText(OutlinedButton, 'ไม่บันทึก'));
+      await tester.pumpAndSettle();
+      expect(find.text('เมนูผู้ใช้งาน'), findsOneWidget);
+      expect(backend.calls, isNot(contains('POST /api/admin/users')));
+    },
+  );
+
+  testWidgets('เปลี่ยนรหัสผ่าน: กรอกค้างแล้วกดยกเลิก ถามก่อน', (tester) async {
+    await start(tester);
+    await login(tester, 'user291', 'User@2569x');
+    await tester.tap(find.text('เปลี่ยนรหัสผ่าน'));
+    await tester.pumpAndSettle();
+
+    // ยังไม่กรอกอะไร ยกเลิกแล้วปิดเลย
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsNothing);
+    expect(find.text('บันทึกรหัสผ่านใหม่'), findsNothing);
+
+    await tester.tap(find.text('เปลี่ยนรหัสผ่าน'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'รหัสผ่านเดิม'),
+      'User@2569x',
+    );
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+    await tester.pumpAndSettle();
+    expect(find.text(unsavedTitle), findsOneWidget);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ไม่บันทึก'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(TextFormField, 'รหัสผ่านเดิม'), findsNothing);
+    expect(backend.calls, isNot(contains('POST /api/auth/changepassword')));
+  });
+
+  testWidgets(
+    'กำหนดรหัสผ่านใหม่: กรอกค้างแล้วกดยกเลิก เลือกบันทึก = ส่งไป backend',
+    (tester) async {
+      await start(tester);
+      await login(tester, 'admin', 'Admin@2569x');
+      await tester.tap(find.text('กำหนดรหัสผ่านใหม่'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'กำหนดรหัสผ่าน'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'รหัสผ่านใหม่'),
+        'Reset@2570',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'ยืนยันรหัสผ่านใหม่'),
+        'Reset@2570',
+      );
+      await tester.ensureVisible(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'ยกเลิก'));
+      await tester.pumpAndSettle();
+      expect(find.text(unsavedTitle), findsOneWidget);
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'กำหนดรหัสผ่านใหม่').last,
+      );
+      await tester.pumpAndSettle();
+      expect(
+        backend.calls,
+        contains('POST /api/admin/users/u1/reset-password'),
+      );
+      expect(find.widgetWithText(TextFormField, 'รหัสผ่านใหม่'), findsNothing);
+    },
+  );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../providers/auth_provider.dart';
+import '../utils/unsaved_guard.dart';
 import 'form_helpers.dart';
 
 /// เปลี่ยนรหัสผ่านของตัวเอง
@@ -35,6 +36,23 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
     _new.dispose();
     _confirm.dispose();
     super.dispose();
+  }
+
+  bool get _dirty =>
+      _old.text.isNotEmpty || _new.text.isNotEmpty || _confirm.text.isNotEmpty;
+
+  /// กดยกเลิก/ออกจากระบบ/Esc: กรอกค้างไว้ให้ถามก่อนว่าจะบันทึกไหม
+  Future<void> _close() async {
+    if (_loading) return;
+    if (_dirty) {
+      final choice = await askUnsaved(context, saveLabel: 'บันทึกรหัสผ่านใหม่');
+      if (!mounted || choice == UnsavedChoice.stay) return;
+      if (choice == UnsavedChoice.save) {
+        await _submit();
+        return;
+      }
+    }
+    if (mounted) Navigator.of(context).pop(false);
   }
 
   Future<void> _submit() async {
@@ -77,7 +95,11 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !widget.forced,
+      // ปิดด้วย Esc/ปุ่มย้อนของเบราว์เซอร์ต้องผ่านคำถามเดียวกับปุ่มยกเลิก (แบบบังคับเปลี่ยน ปิดได้ทางปุ่มออกจากระบบเท่านั้น)
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !widget.forced) _close();
+      },
       child: DialogShell(
         icon: Icons.key_rounded,
         title: 'เปลี่ยนรหัสผ่าน',
@@ -140,7 +162,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 loading: _loading,
                 onSubmit: _submit,
                 cancelLabel: widget.forced ? 'ออกจากระบบ' : 'ยกเลิก',
-                onCancel: () => Navigator.of(context).pop(false),
+                onCancel: _close,
               ),
             ],
           ),
