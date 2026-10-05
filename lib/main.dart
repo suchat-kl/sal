@@ -7,6 +7,7 @@ import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/account_screen.dart';
 import 'screens/download_screen.dart';
+import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/upload_screen.dart';
 import 'screens/user_form_screen.dart';
@@ -239,6 +240,8 @@ class _MainShellState extends State<MainShell> {
           api: _auth.api,
           mode: UserListMode.edit,
         );
+      case MenuData.historyId when admin:
+        return HistoryScreen(api: _auth.api);
       case MenuData.userResetId when admin:
         return UserListScreen(
           key: const ValueKey('reset'),

@@ -4,8 +4,10 @@ import '../config/theme.dart';
 import '../services/api_service.dart';
 import '../utils/file_pick.dart';
 import '../utils/file_saver.dart';
+import '../widgets/app_pagination.dart';
 import '../widgets/file_widgets.dart';
 import '../widgets/form_helpers.dart';
+import '../widgets/simple_table.dart';
 
 /// หน้าอัปโหลดไฟล์ (UPLOAD/ADMIN) มีสองส่วนใต้ปี/เดือนเดียวกัน
 /// 1. รายละเอียดการจ่ายเงินประจำเดือน: PDF รวมทุกหน่วยงาน → ระบบตัดเป็นไฟล์รายหน่วยงาน → เผยแพร่ → เลือกลบ PDF รวม
@@ -47,6 +49,14 @@ class _UploadScreenState extends State<UploadScreen> {
 
   List<Map<String, dynamic>> _batches = [];
   List<Map<String, dynamic>> _common = [];
+
+  /// สถานะการดาวน์โหลดของแต่ละหน่วยงานในเดือนที่เลือก (null = ยังโหลดไม่ได้)
+  Map<String, dynamic>? _status;
+
+  /// ตัวกรองตารางสถานะ: all / pending (ยังไม่ดาวน์โหลด) / done
+  String _statusFilter = 'pending';
+  int _statusPage = 0;
+  int _statusSize = AppPagination.defaultSize;
   bool _loading = true;
   String? _error;
 
@@ -79,10 +89,17 @@ class _UploadScreenState extends State<UploadScreen> {
         _api.payrollUploads(_year, _month),
         _api.commonFiles(_year, _month),
       ]);
+      // สถานะการดาวน์โหลดเป็นข้อมูลเสริม โหลดไม่ได้ก็ไม่ให้ทั้งหน้าใช้ไม่ได้
+      Map<String, dynamic>? status;
+      try {
+        status = await _api.downloadStatus(_year, _month);
+      } catch (_) {}
       if (!mounted) return;
       setState(() {
         _batches = results[0];
         _common = results[1];
+        _status = status;
+        _statusPage = 0;
         _loading = false;
       });
     } catch (e) {
@@ -671,7 +688,139 @@ class _UploadScreenState extends State<UploadScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 18),
+        if (!_loading) _statusSection(),
       ],
+    );
+  }
+
+  /// ส่วนที่ 3: หน่วยงานไหนดาวน์โหลดไฟล์ของเดือนนี้แล้ว หน่วยงานไหนยัง (ไว้ติดตาม)
+  Widget _statusSection() {
+    final palette = context.appPalette;
+    final status = _status;
+    final units = [
+      for (final u in (status?['units'] as List? ?? const []))
+        Map<String, dynamic>.from(u),
+    ];
+    final total = (status?['total'] ?? 0) as int;
+    final done = (status?['downloaded'] ?? 0) as int;
+    final shown = [
+      for (final u in units)
+        if (_statusFilter == 'all' ||
+            (_statusFilter == 'done') == (u['downloaded'] == true))
+          u,
+    ];
+    final pages = AppPagination.pageCount(shown.length, _statusSize);
+    final page = _statusPage >= pages
+        ? (pages == 0 ? 0 : pages - 1)
+        : _statusPage;
+    final visible = shown.skip(page * _statusSize).take(_statusSize);
+    Widget c(String t, {bool bold = false}) =>
+        SimpleTable.cell(context, t, bold: bold);
+    return SectionCard(
+      icon: Icons.fact_check_rounded,
+      title: 'สถานะการดาวน์โหลดของหน่วยงาน',
+      subtitle: total == 0
+          ? 'เดือน $_period ยังไม่มีไฟล์ที่เผยแพร่'
+          : 'เดือน $_period ดาวน์โหลดแล้ว $done จาก $total หน่วยงาน (ยังไม่ดาวน์โหลด ${total - done})',
+      child: total == 0
+          ? const SizedBox.shrink()
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: done / total,
+                    minHeight: 8,
+                    color: ActionColors.success,
+                    backgroundColor: palette.border,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    for (final f in const [
+                      ('pending', 'ยังไม่ดาวน์โหลด'),
+                      ('done', 'ดาวน์โหลดแล้ว'),
+                      ('all', 'ทั้งหมด'),
+                    ])
+                      ChoiceChip(
+                        label: Text(
+                          f.$2,
+                          style: const TextStyle(
+                            fontFamily: AppTheme.bodyFont,
+                            fontSize: 14,
+                          ),
+                        ),
+                        selected: _statusFilter == f.$1,
+                        onSelected: (_) => setState(() {
+                          _statusFilter = f.$1;
+                          _statusPage = 0;
+                        }),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SimpleTable(
+                  emptyText: _statusFilter == 'pending'
+                      ? 'ทุกหน่วยงานดาวน์โหลดแล้ว'
+                      : 'ไม่มีหน่วยงานในกลุ่มนี้',
+                  headers: const [
+                    'หน่วยงาน',
+                    'ไฟล์',
+                    'สถานะ',
+                    'ดาวน์โหลดล่าสุด',
+                  ],
+                  flex: const [6, 2, 3, 5],
+                  rows: [
+                    for (final u in visible)
+                      [
+                        c('${u['div']} ${u['divName'] ?? ''}'),
+                        c((u['types'] as List).join(', ')),
+                        u['downloaded'] == true
+                            ? SimpleTable.chip(
+                                'ดาวน์โหลดแล้ว',
+                                ActionColors.success,
+                              )
+                            : SimpleTable.chip(
+                                'ยังไม่ดาวน์โหลด',
+                                ActionColors.warning,
+                              ),
+                        c(
+                          u['downloaded'] == true
+                              ? '${thaiDateTime(u['lastAt'])} โดย ${u['lastBy']} (${u['count']} ครั้ง)'
+                              : '-',
+                        ),
+                      ],
+                  ],
+                ),
+                if (shown.length > AppPagination.sizes.first) ...[
+                  const SizedBox(height: 10),
+                  AppPagination(
+                    page: page,
+                    pageSize: _statusSize,
+                    totalItems: shown.length,
+                    onPage: (p) => setState(() => _statusPage = p),
+                    onPageSize: (s) => setState(() {
+                      _statusSize = s;
+                      _statusPage = 0;
+                    }),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  'นับเฉพาะการดาวน์โหลดด้วยบัญชีของหน่วยงานนั้นเอง ผู้ดูแลระบบหรือผู้อัปโหลดเปิดดูให้ไม่นับ',
+                  style: TextStyle(
+                    fontFamily: AppTheme.bodyFont,
+                    fontSize: 13.5,
+                    color: palette.textSecondary,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
