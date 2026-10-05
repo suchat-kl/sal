@@ -7,6 +7,7 @@ class MenuNode {
   final IconData icon;
   final String? url;
   final String? description;
+  final String? statusLabel;
   final List<MenuNode> children;
 
   const MenuNode({
@@ -15,6 +16,7 @@ class MenuNode {
     required this.icon,
     this.url,
     this.description,
+    this.statusLabel,
     this.children = const [],
   });
 
@@ -98,6 +100,7 @@ class MenuData {
       icon: Icons.apartment_rounded,
       url: 'https://inf.doh.go.th/htc/',
       description: 'ระบบจองห้องพัก ห้องประชุม และห้องกิจกรรม ศูนย์พัฒนาทรัพยากรบุคคลงานทาง',
+      statusLabel: 'ระบบงานอยู่ในช่วงทดสอบ',
     ),
     MenuNode(
       id: 'helpdesk',
@@ -106,6 +109,48 @@ class MenuData {
       url: helpdeskUrl,
       description: 'แจ้งปัญหาและสอบถามการใช้งาน',
     ),
+  ];
+
+  // ---- เมนูหลังเข้าสู่ระบบ (หน้าจอภายใน ไม่ใช่ลิงก์) ----
+  static const String accountId = 'account';
+  static const String changePasswordId = 'change-password';
+  static const String userCreateId = 'user-create';
+  static const String userEditId = 'user-edit';
+  static const String userResetId = 'user-reset';
+
+  /// เมนูของผู้ที่เข้าสู่ระบบแล้ว — เปลี่ยนรหัสผ่านใช้ได้ทุกบทบาท ที่เหลือเฉพาะ ADMIN
+  static List<MenuNode> userItems({required bool isAdmin}) => [
+    const MenuNode(
+      id: accountId,
+      title: 'หน้าผู้ใช้งาน',
+      icon: Icons.account_circle_rounded,
+    ),
+    const MenuNode(
+      id: changePasswordId,
+      title: 'เปลี่ยนรหัสผ่าน',
+      icon: Icons.key_rounded,
+      description: 'เปลี่ยนรหัสผ่านของบัญชีตัวเอง',
+    ),
+    if (isAdmin) ...const [
+      MenuNode(
+        id: userCreateId,
+        title: 'สร้างผู้ใช้งาน',
+        icon: Icons.person_add_alt_1_rounded,
+        description: 'เพิ่มบัญชีใหม่ กำหนดหน่วยงานและบทบาท',
+      ),
+      MenuNode(
+        id: userEditId,
+        title: 'แก้ไขผู้ใช้งาน',
+        icon: Icons.manage_accounts_rounded,
+        description: 'แก้ข้อมูล บทบาท ระงับหรือปลดล็อกบัญชี',
+      ),
+      MenuNode(
+        id: userResetId,
+        title: 'กำหนดรหัสผ่านใหม่',
+        icon: Icons.lock_reset_rounded,
+        description: 'ตั้งรหัสผ่านใหม่ให้ผู้ใช้ที่ลืมรหัสผ่าน',
+      ),
+    ],
   ];
 
   /// เมนูปลายทางทั้งหมด (ไม่รวมหน้าแรก) ใช้ทำการ์ดทางลัดในหน้าแรก

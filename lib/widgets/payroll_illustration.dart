@@ -56,7 +56,7 @@ class PayrollIllustration extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppTheme.accent,
+                  color: context.appPalette.accent,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 4),
                   boxShadow: const [
@@ -130,12 +130,12 @@ class _SlipCard extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
+                  color: context.appPalette.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person_rounded,
-                  color: AppTheme.primary,
+                  color: context.appPalette.primary,
                   size: 22,
                 ),
               ),
@@ -148,7 +148,10 @@ class _SlipCard extends StatelessWidget {
                       fit: BoxFit.scaleDown,
                       child: Text(
                         'สลิปเงินเดือน',
-                        style: AppTheme.heading(14, weight: FontWeight.w700),
+                        style: context.appPalette.heading(
+                          14,
+                          weight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -177,21 +180,21 @@ class _SlipCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text(
+                Text(
                   'รับสุทธิ',
                   style: TextStyle(
                     fontFamily: AppTheme.bodyFont,
                     fontSize: 13,
-                    color: AppTheme.textSecondary,
+                    color: context.appPalette.textSecondary,
                   ),
                 ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     '฿ 35,800',
-                    style: AppTheme.heading(
+                    style: context.appPalette.heading(
                       22,
-                      color: AppTheme.primary,
+                      color: context.appPalette.primary,
                       weight: FontWeight.w700,
                     ),
                   ),
@@ -231,12 +234,12 @@ class _TaxCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppTheme.accentSoft,
+              color: context.appPalette.accentSoft,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '50 ทวิ',
-              style: AppTheme.heading(
+              style: context.appPalette.heading(
                 12,
                 color: const Color(0xFFB45309),
                 weight: FontWeight.w700,
@@ -246,7 +249,7 @@ class _TaxCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'ใบรับรองภาษี',
-            style: AppTheme.heading(13, weight: FontWeight.w700),
+            style: context.appPalette.heading(13, weight: FontWeight.w700),
           ),
           const SizedBox(height: 14),
           for (final w in const [140.0, 110.0, 150.0, 90.0]) ...[
@@ -262,13 +265,13 @@ class _TaxCard extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppTheme.primary.withValues(alpha: 0.5),
+                  color: context.appPalette.primary.withValues(alpha: 0.5),
                   width: 2,
                 ),
               ),
               child: Icon(
                 Icons.approval_rounded,
-                color: AppTheme.primary.withValues(alpha: 0.7),
+                color: context.appPalette.primary.withValues(alpha: 0.7),
                 size: 24,
               ),
             ),
@@ -296,7 +299,10 @@ class _CoinStack extends StatelessWidget {
           Positioned(
             left: 70,
             bottom: 0,
-            child: Transform.rotate(angle: -math.pi / 14, child: _coinFace(64)),
+            child: Transform.rotate(
+              angle: -math.pi / 14,
+              child: _coinFace(context, 64),
+            ),
           ),
         ],
       ),
@@ -322,7 +328,7 @@ class _CoinStack extends StatelessWidget {
     ),
   );
 
-  Widget _coinFace(double size) => Container(
+  Widget _coinFace(BuildContext context, double size) => Container(
     width: size,
     height: size,
     decoration: BoxDecoration(
@@ -342,7 +348,7 @@ class _CoinStack extends StatelessWidget {
     alignment: Alignment.center,
     child: Text(
       '฿',
-      style: AppTheme.heading(
+      style: context.appPalette.heading(
         size * 0.45,
         color: const Color(0xFF78350F),
         weight: FontWeight.w700,

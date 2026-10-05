@@ -18,6 +18,9 @@ class SidebarMenu extends StatefulWidget {
   final VoidCallback? onToggleCollapsed;
   final ValueChanged<String> onSelectInternal;
 
+  /// เมนูของผู้ที่เข้าสู่ระบบแล้ว (ว่าง = ยังไม่ได้เข้าสู่ระบบ) แสดงเหนือเมนูหลัก
+  final List<MenuNode> userItems;
+
   /// กว้างตอนเหลือแต่ไอคอน
   static const double railWidth = 76;
 
@@ -34,6 +37,7 @@ class SidebarMenu extends StatefulWidget {
     required this.onTogglePinned,
     required this.onSelectInternal,
     this.onToggleCollapsed,
+    this.userItems = const [],
   });
 
   @override
@@ -76,7 +80,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       width: width,
-      decoration: const BoxDecoration(gradient: AppTheme.sidebarGradient),
+      decoration: BoxDecoration(gradient: context.appPalette.sidebarGradient),
       // จัดวางเนื้อหาที่ความกว้างปลายทางเลย แล้วตัดส่วนเกินระหว่างแอนิเมชัน
       // ไม่งั้นช่วงที่กว้างค่อย ๆ เปลี่ยน แถวเมนูจะถูกบีบจนล้น
       child: ClipRect(
@@ -87,7 +91,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
           child: SafeArea(
             child: Column(
               children: [
-                _buildTopBar(),
+                _buildTopBar(context),
                 const Divider(height: 1, color: Color(0x1FFFFFFF)),
                 Expanded(
                   child: ListView(
@@ -96,12 +100,21 @@ class _SidebarMenuState extends State<SidebarMenu> {
                       horizontal: _rail ? 10 : 12,
                     ),
                     children: [
+                      if (widget.userItems.isNotEmpty) ...[
+                        if (!_rail) _sectionTitle('ผู้ใช้งาน'),
+                        for (final node in widget.userItems)
+                          ..._buildNode(node),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Divider(height: 1, color: Color(0x1FFFFFFF)),
+                        ),
+                      ],
                       if (!_rail) _sectionTitle('เมนูหลัก'),
                       for (final node in MenuData.items) ..._buildNode(node),
                     ],
                   ),
                 ),
-                if (!_rail) _buildFooter(),
+                if (!_rail) _buildFooter(context),
               ],
             ),
           ),
@@ -111,14 +124,14 @@ class _SidebarMenuState extends State<SidebarMenu> {
   }
 
   /// แถวบนสุด: ปุ่มย่อ/ขยาย และปุ่มตรึง/เลิกตรึง
-  Widget _buildTopBar() {
+  Widget _buildTopBar(BuildContext context) {
     final pinBtn = widget.canPin
         ? IconButton(
             tooltip: widget.pinned ? 'เลิกตรึงเมนู' : 'ตรึงเมนูไว้ข้างซ้าย',
             onPressed: widget.onTogglePinned,
             icon: Icon(
               widget.pinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-              color: widget.pinned ? AppTheme.accent : Colors.white70,
+              color: widget.pinned ? context.appPalette.accent : Colors.white70,
               size: 20,
             ),
           )
@@ -150,7 +163,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
           Expanded(
             child: Text(
               'งานเงินเดือน',
-              style: AppTheme.heading(17, color: Colors.white),
+              style: context.appPalette.heading(17, color: Colors.white),
             ),
           ),
           ?pinBtn,
@@ -246,7 +259,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Material(
         color: selected
-            ? AppTheme.primary.withValues(alpha: 0.9)
+            ? context.appPalette.primary.withValues(alpha: 0.9)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
@@ -263,7 +276,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
                 Icon(
                   node.icon,
                   size: small ? 18 : 22,
-                  color: selected ? Colors.white : AppTheme.primaryLight,
+                  color: selected
+                      ? Colors.white
+                      : context.appPalette.primaryLight,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -295,7 +310,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
         message: node.title,
         preferBelow: false,
         child: Material(
-          color: selected ? AppTheme.primary : Colors.transparent,
+          color: selected ? context.appPalette.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
@@ -305,7 +320,9 @@ class _SidebarMenuState extends State<SidebarMenu> {
               height: 50,
               child: Icon(
                 node.icon,
-                color: selected ? Colors.white : AppTheme.primaryLight,
+                color: selected
+                    ? Colors.white
+                    : context.appPalette.primaryLight,
                 size: 24,
               ),
             ),
@@ -315,7 +332,7 @@ class _SidebarMenuState extends State<SidebarMenu> {
     );
   }
 
-  Widget _buildFooter() => Container(
+  Widget _buildFooter(BuildContext context) => Container(
     margin: const EdgeInsets.all(12),
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
@@ -323,10 +340,14 @@ class _SidebarMenuState extends State<SidebarMenu> {
       borderRadius: BorderRadius.circular(14),
       border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
     ),
-    child: const Row(
+    child: Row(
       children: [
-        Icon(Icons.phone_in_talk_rounded, color: AppTheme.accent, size: 20),
-        SizedBox(width: 10),
+        Icon(
+          Icons.phone_in_talk_rounded,
+          color: context.appPalette.accent,
+          size: 20,
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             'ฝ่ายบัญชี โทร. 25035, 25036',
