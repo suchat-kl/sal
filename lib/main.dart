@@ -6,10 +6,13 @@ import 'config/menu_data.dart';
 import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/account_screen.dart';
+import 'screens/download_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/upload_screen.dart';
 import 'screens/user_form_screen.dart';
 import 'screens/user_list_screen.dart';
 import 'services/api_service.dart';
+import 'utils/unsaved_guard.dart';
 import 'widgets/app_header.dart';
 import 'widgets/change_password_dialog.dart';
 import 'widgets/login_dialog.dart';
@@ -195,6 +198,8 @@ class _MainShellState extends State<MainShell> {
 
   /// เลือกเมนูภายใน — บางเมนูเปิดเป็น dialog ทับหน้าปัจจุบัน ที่เหลือเปลี่ยนเนื้อหาด้านขวา
   Future<void> _select(String id) async {
+    // หน้าจอที่เปิดอยู่มีการแก้ไขค้าง: ถามก่อนพาไปหน้าอื่น
+    if (!await UnsavedGuard.canLeave() || !mounted) return;
     switch (id) {
       case MenuData.changePasswordId:
         await showDialog<bool>(
@@ -212,6 +217,10 @@ class _MainShellState extends State<MainShell> {
     switch (_selectedId) {
       case MenuData.accountId when _auth.isLoggedIn:
         return AccountScreen(auth: _auth, onAction: _select);
+      case MenuData.downloadId when _auth.isLoggedIn && _auth.canDownload:
+        return DownloadScreen(auth: _auth);
+      case MenuData.uploadId when _auth.isLoggedIn && _auth.canUpload:
+        return UploadScreen(api: _auth.api);
       case MenuData.userCreateId when admin:
         return UserFormScreen(
           key: ValueKey('create-$_listVersion'),
@@ -246,9 +255,7 @@ class _MainShellState extends State<MainShell> {
     final canPin = MediaQuery.of(context).size.width >= _pinMinWidth;
     final docked = _pinned && canPin;
     final content = _content();
-    final userItems = _auth.isLoggedIn
-        ? MenuData.userItems(isAdmin: _auth.isAdmin)
-        : const <MenuNode>[];
+    final userItems = _auth.menuItems;
 
     return Scaffold(
       appBar: AppHeader(
@@ -257,7 +264,9 @@ class _MainShellState extends State<MainShell> {
         onThemeChanged: widget.onThemeChanged,
         auth: _auth,
         onLogin: _login,
-        onLogout: _auth.logout,
+        onLogout: () async {
+          if (await UnsavedGuard.canLeave()) await _auth.logout();
+        },
         onUserAction: _select,
       ),
       drawer: docked

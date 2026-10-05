@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,9 @@ class Session {
   final String username;
   final String fullName;
   final String? div;
+
+  /// ชื่อหน่วยงานของ [div]
+  final String? divName;
   final List<String> roles;
   final bool mustChangePassword;
 
@@ -27,6 +31,7 @@ class Session {
     required this.username,
     required this.fullName,
     required this.div,
+    required this.divName,
     required this.roles,
     required this.mustChangePassword,
   });
@@ -35,6 +40,7 @@ class Session {
     username: (j['username'] ?? '') as String,
     fullName: (j['full_name'] ?? j['username'] ?? '') as String,
     div: j['div'] as String?,
+    divName: j['div_name'] as String?,
     roles: [for (final r in (j['roles'] as List? ?? const [])) r.toString()],
     mustChangePassword: j['must_change_password'] == true,
   );
@@ -43,6 +49,7 @@ class Session {
     'username': username,
     'full_name': fullName,
     'div': div,
+    'div_name': divName,
     'roles': roles,
     'must_change_password': mustChangePassword,
   };
@@ -51,6 +58,7 @@ class Session {
     username: username,
     fullName: fullName,
     div: div,
+    divName: divName,
     roles: roles,
     mustChangePassword: mustChangePassword ?? this.mustChangePassword,
   );
@@ -212,6 +220,25 @@ class ApiService {
     return s;
   });
 
+  /// อ่านข้อมูลผู้ใช้ล่าสุดจาก backend (ชื่อ หน่วยงาน บทบาท) มาแทนค่าที่จำไว้ในเบราว์เซอร์
+  /// ใช้ตอนเปิดหน้าเว็บใหม่ทั้งที่ยังเข้าสู่ระบบค้างอยู่ คืน true เมื่อข้อมูลเปลี่ยน
+  Future<bool> refreshSession() async {
+    if (_session == null) return false;
+    try {
+      final res = await dio.get('/api/auth/me');
+      final data = res.data;
+      if (data is! Map || data['username'] == null || _session == null) {
+        return false;
+      }
+      final before = jsonEncode(_session!.toJson());
+      final s = Session.fromJson(Map<String, dynamic>.from(data));
+      await _saveSession(s);
+      return jsonEncode(s.toJson()) != before;
+    } catch (_) {
+      return false; // เครือข่ายล่มก็ใช้ค่าที่จำไว้ต่อ; session หมดอายุ onSessionExpired จัดการเอง
+    }
+  }
+
   Future<void> logout() async {
     final refresh = prefs.getString(_refreshKey);
     try {
@@ -269,9 +296,9 @@ class ApiService {
         return (res.data['message'] ?? 'ตั้งรหัสผ่านใหม่สำเร็จ') as String;
       });
 
-  /// รายชื่อหน่วยงาน [{div, divname}] ใช้ทำตัวเลือกในฟอร์มผู้ใช้
+  /// รายชื่อหน่วยงาน [{div, divname}] ใช้ทำตัวเลือกในฟอร์มผู้ใช้ และให้ ADMIN/UPLOAD เลือกหน่วยงานในหน้าดาวน์โหลด
   Future<List<Map<String, String>>> divs() => _call(() async {
-    final res = await dio.get('/api/admin/divs');
+    final res = await dio.get('/api/download/divs');
     return [
       for (final d in res.data as List)
         {
@@ -280,4 +307,144 @@ class ApiService {
         },
     ];
   });
+
+  // ---------------- ไฟล์เงินเดือน ----------------
+
+  /// อัปโหลด/ตัดไฟล์ใช้เวลานานกว่าคำขอทั่วไป
+  static final Options _slow = Options(
+    sendTimeout: const Duration(minutes: 5),
+    receiveTimeout: const Duration(minutes: 5),
+  );
+
+  static FormData _form(
+    String name,
+    Uint8List bytes,
+    Map<String, dynamic> fields,
+  ) => FormData.fromMap({
+    ...fields,
+    'file': MultipartFile.fromBytes(bytes, filename: name),
+  });
+
+  /// ชุดที่ยังมีผลของเดือนนี้ (รอเผยแพร่ + เผยแพร่อยู่)
+  Future<List<Map<String, dynamic>>> payrollUploads(int year, int month) =>
+      _call(() async {
+        final res = await dio.get(
+          '/api/upload/payroll',
+          queryParameters: {'year': year, 'month': month},
+        );
+        return [for (final u in res.data as List) Map<String, dynamic>.from(u)];
+      });
+
+  /// อัปโหลด PDF รวมทุกหน่วยงาน ระบบตรวจแล้วตัดเป็นไฟล์รายหน่วยงาน (ยังไม่เผยแพร่)
+  Future<Map<String, dynamic>> uploadPayroll({
+    required String name,
+    required Uint8List bytes,
+    required int year,
+    required int month,
+    required String type,
+    void Function(int sent, int total)? onProgress,
+  }) => _call(() async {
+    final res = await dio.post(
+      '/api/upload/payroll',
+      data: _form(name, bytes, {'year': year, 'month': month, 'type': type}),
+      options: _slow,
+      onSendProgress: onProgress,
+    );
+    return Map<String, dynamic>.from(res.data as Map);
+  });
+
+  Future<Map<String, dynamic>> _payrollAction(String method, String path) =>
+      _call(() async {
+        final res = await dio.request(path, options: Options(method: method));
+        return Map<String, dynamic>.from(res.data as Map);
+      });
+
+  Future<Map<String, dynamic>> publishPayroll(String id) =>
+      _payrollAction('POST', '/api/upload/payroll/$id/publish');
+
+  Future<Map<String, dynamic>> cancelPayroll(String id) =>
+      _payrollAction('POST', '/api/upload/payroll/$id/cancel');
+
+  Future<Map<String, dynamic>> deletePayrollSource(String id) =>
+      _payrollAction('DELETE', '/api/upload/payroll/$id/source');
+
+  Future<List<Map<String, dynamic>>> commonFiles(int year, int month) =>
+      _call(() async {
+        final res = await dio.get(
+          '/api/upload/common',
+          queryParameters: {'year': year, 'month': month},
+        );
+        return [for (final f in res.data as List) Map<String, dynamic>.from(f)];
+      });
+
+  /// อัปโหลดไฟล์ประกอบ ชื่อซ้ำได้ [ApiException] statusCode 409 — ถามผู้ใช้แล้วเรียกใหม่ด้วย [overwrite]
+  Future<void> uploadCommon({
+    required String name,
+    required Uint8List bytes,
+    required int year,
+    required int month,
+    bool overwrite = false,
+  }) => _call(
+    () => dio.post(
+      '/api/upload/common',
+      data: _form(name, bytes, {
+        'year': year,
+        'month': month,
+        'overwrite': overwrite,
+      }),
+      options: _slow,
+    ),
+  );
+
+  Future<void> deleteCommon(int year, int month, String name) => _call(
+    () => dio.delete(
+      '/api/upload/common',
+      queryParameters: {'year': year, 'month': month, 'name': name},
+    ),
+  );
+
+  /// ไฟล์ของหน่วยงานผู้ใช้ในเดือนที่เลือก + ไฟล์ประกอบ
+  /// [div] = ดูหน่วยงานอื่น, [all] = ทุกหน่วยงาน (ทั้งสองใช้ได้เฉพาะ ADMIN/UPLOAD)
+  Future<Map<String, dynamic>> downloadFiles(
+    int year,
+    int month, {
+    String? div,
+    bool all = false,
+  }) => _call(() async {
+    final res = await dio.get(
+      '/api/download/files',
+      queryParameters: {
+        'year': year,
+        'month': month,
+        'div': ?div,
+        if (all) 'all': true,
+      },
+    );
+    return Map<String, dynamic>.from(res.data as Map);
+  });
+
+  /// ดึงเนื้อไฟล์จาก [path] (แนบ token ให้เอง) ใช้กับทุกลิงก์ดาวน์โหลด
+  Future<Uint8List> fetchFile(String path, [Map<String, dynamic>? query]) =>
+      _call(() async {
+        try {
+          final res = await dio.get<List<int>>(
+            path,
+            queryParameters: query,
+            options: Options(
+              responseType: ResponseType.bytes,
+              receiveTimeout: const Duration(minutes: 5),
+            ),
+          );
+          return Uint8List.fromList(res.data ?? const []);
+        } on DioException catch (e) {
+          // ขอเป็น bytes ข้อความผิดพลาดจึงมาเป็น bytes ด้วย แปลงกลับเป็น JSON ให้ _wrap อ่านข้อความได้
+          final data = e.response?.data;
+          if (data is List<int>) {
+            try {
+              e.response!.data = jsonDecode(utf8.decode(data));
+            } catch (_) {}
+          }
+          rethrow;
+        }
+      });
 }

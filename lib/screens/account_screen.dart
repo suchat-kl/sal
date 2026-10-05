@@ -16,7 +16,7 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.appPalette;
     final items = [
-      for (final m in MenuData.userItems(isAdmin: auth.isAdmin))
+      for (final m in auth.menuItems)
         if (m.id != MenuData.accountId) m,
     ];
     return ListView(
@@ -57,7 +57,7 @@ class AccountScreen extends StatelessWidget {
                       [
                         'ชื่อผู้ใช้ ${auth.username}',
                         'บทบาท ${auth.roleLabel}',
-                        if (auth.div != null) 'หน่วยงาน ${auth.div}',
+                        if (auth.divLabel != null) 'หน่วยงาน ${auth.divLabel}',
                       ].join('   ·   '),
                       style: const TextStyle(
                         fontFamily: AppTheme.bodyFont,

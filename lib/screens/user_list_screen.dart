@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/app_pagination.dart';
 import '../widgets/form_helpers.dart';
 import '../widgets/reset_password_dialog.dart';
 import 'user_form_screen.dart';
@@ -24,14 +25,11 @@ class UserListScreen extends StatefulWidget {
 }
 
 class _UserListScreenState extends State<UserListScreen> {
-  static const List<int> _sizes = [5, 10, 15, 20];
-
   final _keyword = TextEditingController();
   Timer? _debounce;
   List<Map<String, dynamic>> _users = [];
   int _page = 0;
-  int _size = 10;
-  int _totalPages = 0;
+  int _size = AppPagination.defaultSize;
   int _totalItems = 0;
   bool _loading = true;
   String? _error;
@@ -74,7 +72,6 @@ class _UserListScreenState extends State<UserListScreen> {
         _users = [
           for (final u in res['users'] as List) Map<String, dynamic>.from(u),
         ];
-        _totalPages = (res['totalPages'] ?? 0) as int;
         _totalItems = (res['totalItems'] ?? 0) as int;
         _loading = false;
       });
@@ -305,64 +302,15 @@ class _UserListScreenState extends State<UserListScreen> {
     );
   }
 
-  /// ตัวแบ่งหน้าแบบเดียวกับ HTC: เลือกแถวต่อหน้า + หน้าแรก/ก่อนหน้า/ถัดไป/สุดท้าย
-  Widget _pagination() {
-    final palette = context.appPalette;
-    final last = _totalPages - 1;
-    final text = TextStyle(
-      fontFamily: AppTheme.bodyFont,
-      fontSize: 14,
-      color: palette.textSecondary,
-    );
-    Widget nav(String tip, IconData icon, int target, bool enabled) =>
-        IconButton(
-          tooltip: tip,
-          icon: Icon(icon),
-          onPressed: enabled && !_loading ? () => _load(page: target) : null,
-        );
-    return Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 16,
-      runSpacing: 8,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('ทั้งหมด $_totalItems รายการ   แถวต่อหน้า', style: text),
-            const SizedBox(width: 8),
-            DropdownButton<int>(
-              value: _size,
-              underline: const SizedBox.shrink(),
-              items: [
-                for (final s in _sizes)
-                  DropdownMenuItem(value: s, child: Text('$s')),
-              ],
-              onChanged: (v) {
-                if (v == null) return;
-                _size = v;
-                _load(page: 0);
-              },
-            ),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            nav('หน้าแรก', Icons.first_page, 0, _page > 0),
-            nav('ก่อนหน้า', Icons.chevron_left, _page - 1, _page > 0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                'หน้า ${_totalPages == 0 ? 0 : _page + 1} / $_totalPages',
-                style: text,
-              ),
-            ),
-            nav('ถัดไป', Icons.chevron_right, _page + 1, _page < last),
-            nav('หน้าสุดท้าย', Icons.last_page, last, _page < last),
-          ],
-        ),
-      ],
-    );
-  }
+  Widget _pagination() => AppPagination(
+    page: _page,
+    pageSize: _size,
+    totalItems: _totalItems,
+    enabled: !_loading,
+    onPage: (p) => _load(page: p),
+    onPageSize: (s) {
+      _size = s;
+      _load(page: 0);
+    },
+  );
 }
