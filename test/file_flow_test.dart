@@ -352,8 +352,6 @@ void main() {
     await tester.enterText(find.widgetWithText(TextFormField, 'รหัสผ่าน'), 'x');
     await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'รับทราบ'));
-    await tester.pumpAndSettle();
   }
 
   Future<void> tapText(WidgetTester tester, String text) async {

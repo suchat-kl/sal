@@ -181,12 +181,6 @@ void main() {
     );
     await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
-    // หลังเข้าสู่ระบบมีข้อความแจ้งว่าใช้งานได้ทีละเครื่อง กดรับทราบก่อนทำอย่างอื่น
-    final ack = find.widgetWithText(FilledButton, 'รับทราบ');
-    if (ack.evaluate().isNotEmpty) {
-      await tester.tap(ack);
-      await tester.pumpAndSettle();
-    }
   }
 
   testWidgets(
@@ -667,70 +661,25 @@ void main() {
     },
   );
 
-  testWidgets('หลังเข้าสู่ระบบ แจ้งว่าบัญชีใช้งานได้ทีละเครื่อง', (
-    tester,
-  ) async {
-    await start(tester);
-    await tester.tap(find.text('เข้าสู่ระบบเจ้าหน้าที่'));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
-      'user291',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'รหัสผ่าน'),
-      'User@2569x',
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsOneWidget);
-    expect(
-      find.textContaining('เครื่องนี้จะถูกออกจากระบบโดยอัตโนมัติ'),
-      findsWidgets,
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'รับทราบ'));
-    await tester.pumpAndSettle();
-    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
-    // ข้อความเดียวกันยังอยู่ในหน้าผู้ใช้งานให้อ่านซ้ำได้
-    expect(find.textContaining('บัญชีนี้ใช้งานได้ทีละเครื่อง'), findsOneWidget);
-  });
-
   testWidgets(
-    'ถูกบังคับเปลี่ยนรหัสผ่านก่อน แล้วจึงแจ้งเรื่องใช้งานทีละเครื่อง',
+    'หลังเข้าสู่ระบบไม่มี pop up มีป้ายเตือนใช้งานได้ทีละเครื่องที่หน้าจอ',
     (tester) async {
       await start(tester);
-      await tester.tap(find.text('เข้าสู่ระบบเจ้าหน้าที่'));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'ชื่อผู้ใช้'),
-        'newbie',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'รหัสผ่าน'),
-        'Temp@1234',
-      );
-      await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
-      await tester.pumpAndSettle();
+      await login(tester, 'user291', 'User@2569x');
 
-      expect(find.text('ต้องเปลี่ยนรหัสผ่านก่อนใช้งานต่อ'), findsOneWidget);
-      expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'รหัสผ่านเดิม'),
-        'Temp@1234',
+      // เข้าแล้วใช้งานได้ทันที ไม่มีหน้าต่างให้กดรับทราบ
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.widgetWithText(FilledButton, 'รับทราบ'), findsNothing);
+      expect(find.text('เมนูผู้ใช้งาน'), findsOneWidget);
+      // ป้ายเตือนอยู่ในหน้าผู้ใช้งาน
+      expect(
+        find.textContaining('บัญชีนี้ใช้งานได้ทีละเครื่อง'),
+        findsOneWidget,
       );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'รหัสผ่านใหม่'),
-        'NewPass@2570',
+      expect(
+        find.textContaining('เครื่องนี้จะถูกออกจากระบบโดยอัตโนมัติ'),
+        findsOneWidget,
       );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'ยืนยันรหัสผ่านใหม่'),
-        'NewPass@2570',
-      );
-      await tester.ensureVisible(find.text('บันทึกรหัสผ่านใหม่'));
-      await tester.tap(find.text('บันทึกรหัสผ่านใหม่'));
-      await tester.pumpAndSettle();
-      expect(find.text('ใช้งานได้ทีละเครื่อง'), findsOneWidget);
     },
   );
 
@@ -765,6 +714,6 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
     expect(find.textContaining('กรุณาลองใหม่ในอีก 10 นาที'), findsOneWidget);
-    expect(find.text('ใช้งานได้ทีละเครื่อง'), findsNothing);
+    expect(find.byType(AlertDialog), findsNothing);
   });
 }

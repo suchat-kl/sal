@@ -203,36 +203,8 @@ class _MainShellState extends State<MainShell> {
     if (ok == true && mounted) {
       setState(() => _selectedId = MenuData.accountId);
       await _checkMustChangePassword();
-      // แจ้งทุกครั้งหลังเข้าสู่ระบบ: บัญชีใช้ได้ทีละเครื่อง (ถ้าถูกบังคับเปลี่ยนรหัสแล้วไม่เปลี่ยน จะออกจากระบบไปแล้ว ไม่ต้องแจ้ง)
-      if (mounted && _auth.isLoggedIn) await _showSingleDeviceNotice();
     }
   }
-
-  Future<void> _showSingleDeviceNotice() => showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      icon: Icon(
-        Icons.devices_other_rounded,
-        size: 40,
-        color: context.appPalette.primary,
-      ),
-      title: Text('ใช้งานได้ทีละเครื่อง', style: AppTheme.heading(19)),
-      content: const Text(
-        AuthProvider.singleDeviceNotice,
-        style: TextStyle(fontFamily: AppTheme.bodyFont, fontSize: 15.5),
-      ),
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text(
-            'รับทราบ',
-            style: TextStyle(fontFamily: AppTheme.bodyFont),
-          ),
-        ),
-      ],
-    ),
-  );
 
   /// เลือกเมนูภายใน — บางเมนูเปิดเป็น dialog ทับหน้าปัจจุบัน ที่เหลือเปลี่ยนเนื้อหาด้านขวา
   Future<void> _select(String id) async {
