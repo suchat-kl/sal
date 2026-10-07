@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
+import '../config/features.dart';
 import '../providers/auth_provider.dart';
 import '../utils/file_saver.dart';
 import '../widgets/file_widgets.dart';
@@ -311,9 +312,11 @@ class _DownloadScreenState extends State<DownloadScreen> {
       for (final f in (data?['payroll'] as List? ?? const []))
         Map<String, dynamic>.from(f),
     ];
+    // ปิดส่วนไฟล์ประกอบ = ทำเหมือนไม่มีไฟล์ประกอบ ทั้งตารางและการนับว่ามีไฟล์ให้ดาวน์โหลดรวมไหม
     final common = [
-      for (final f in (data?['common'] as List? ?? const []))
-        Map<String, dynamic>.from(f),
+      if (AppFeatures.commonFiles)
+        for (final f in (data?['common'] as List? ?? const []))
+          Map<String, dynamic>.from(f),
     ];
     final zipName = (data?['zipName'] ?? '${_div ?? ''}.zip').toString();
     final hasFiles = payroll.isNotEmpty || common.isNotEmpty;
@@ -369,8 +372,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     'ดาวน์โหลดรวมทุกไฟล์ของเดือน $period',
                     style: AppTheme.heading(18, color: Colors.white),
                   ),
-                  const Text(
-                    'ไฟล์รายละเอียดการจ่ายเงิน รวมกับไฟล์ประกอบ ในไฟล์เดียว',
+                  Text(
+                    AppFeatures.commonFiles
+                        ? 'ไฟล์รายละเอียดการจ่ายเงิน รวมกับไฟล์ประกอบ ในไฟล์เดียว'
+                        : 'ไฟล์รายละเอียดการจ่ายเงินทุกไฟล์ ในไฟล์เดียว',
                     style: TextStyle(
                       fontFamily: AppTheme.bodyFont,
                       fontSize: 14.5,
@@ -480,29 +485,31 @@ class _DownloadScreenState extends State<DownloadScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          SectionCard(
-            icon: Icons.attach_file_rounded,
-            title: 'ไฟล์ประกอบ',
-            subtitle:
-                'ไฟล์ประกอบการรายงานของเดือน $period (ทุกหน่วยงานเห็นเหมือนกัน)',
-            child: FileTable(
-              busyName: _busy,
-              emptyText: 'ยังไม่มีไฟล์ประกอบในเดือน $period',
-              rows: [
-                for (final f in common)
-                  FileRow(
-                    name: f['name'] as String,
-                    size: f['size'] as num?,
-                    onDownload: () => _download(
-                      f['name'] as String,
-                      '/api/download/common',
-                      {'year': _year, 'month': _month, 'name': f['name']},
+          if (AppFeatures.commonFiles) ...[
+            const SizedBox(height: 18),
+            SectionCard(
+              icon: Icons.attach_file_rounded,
+              title: 'ไฟล์ประกอบ',
+              subtitle:
+                  'ไฟล์ประกอบการรายงานของเดือน $period (ทุกหน่วยงานเห็นเหมือนกัน)',
+              child: FileTable(
+                busyName: _busy,
+                emptyText: 'ยังไม่มีไฟล์ประกอบในเดือน $period',
+                rows: [
+                  for (final f in common)
+                    FileRow(
+                      name: f['name'] as String,
+                      size: f['size'] as num?,
+                      onDownload: () => _download(
+                        f['name'] as String,
+                        '/api/download/common',
+                        {'year': _year, 'month': _month, 'name': f['name']},
+                      ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ],
     );

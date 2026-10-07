@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'features.dart';
+
 /// รายการเมนู 1 รายการ — มี [url] = เปิดระบบปลายทางในแท็บใหม่, มี [children] = กลุ่มเมนู
 class MenuNode {
   final String id;
@@ -134,18 +136,22 @@ class MenuData {
       icon: Icons.account_circle_rounded,
     ),
     if (canDownload)
-      const MenuNode(
+      MenuNode(
         id: downloadId,
         title: 'ดาวน์โหลดไฟล์',
         icon: Icons.download_rounded,
-        description: 'รายละเอียดการจ่ายเงินของหน่วยงานและไฟล์ประกอบ',
+        description: AppFeatures.commonFiles
+            ? 'รายละเอียดการจ่ายเงินของหน่วยงานและไฟล์ประกอบ'
+            : 'รายละเอียดการจ่ายเงินของหน่วยงาน',
       ),
     if (canUpload)
-      const MenuNode(
+      MenuNode(
         id: uploadId,
         title: 'อัปโหลดไฟล์',
         icon: Icons.upload_file_rounded,
-        description: 'รายละเอียดการจ่ายเงินประจำเดือนและไฟล์ประกอบการรายงาน',
+        description: AppFeatures.commonFiles
+            ? 'รายละเอียดการจ่ายเงินประจำเดือนและไฟล์ประกอบการรายงาน'
+            : 'รายละเอียดการจ่ายเงินประจำเดือน',
       ),
     if (canUpload)
       const MenuNode(
