@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
+import '../config/features.dart';
 import '../services/api_service.dart';
 import '../widgets/app_pagination.dart';
 import '../widgets/file_widgets.dart';
@@ -21,10 +22,10 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   /// ชนิดประวัติ → ชื่อแท็บ (รหัสตรงกับ /api/upload/history/{kind})
-  static const Map<String, String> _kinds = {
+  static Map<String, String> get _kinds => {
     'downloads': 'การดาวน์โหลด (ทุกไฟล์)',
     'payroll': 'อัปโหลดรายละเอียดการจ่ายเงิน',
-    'common': 'อัปโหลด/ลบไฟล์ประกอบ',
+    if (AppFeatures.commonFiles) 'common': 'อัปโหลด/ลบไฟล์ประกอบ',
   };
 
   static const Map<String, (String, Color)> _status = {

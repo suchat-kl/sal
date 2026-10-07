@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../config/theme.dart';
+import '../config/features.dart';
 import '../services/api_service.dart';
 import '../utils/file_pick.dart';
 import '../utils/file_saver.dart';
@@ -11,7 +12,7 @@ import '../widgets/simple_table.dart';
 
 /// หน้าอัปโหลดไฟล์ (UPLOAD/ADMIN) มีสองส่วนใต้ปี/เดือนเดียวกัน
 /// 1. รายละเอียดการจ่ายเงินประจำเดือน: PDF รวมทุกหน่วยงาน → ระบบตัดเป็นไฟล์รายหน่วยงาน → เผยแพร่ → เลือกลบ PDF รวม
-/// 2. ไฟล์ประกอบการรายงาน: ทุกหน่วยงานดาวน์โหลดได้
+/// 2. ไฟล์ประกอบการรายงาน: ทุกหน่วยงานดาวน์โหลดได้ (ซ่อนไว้เมื่อ AppFeatures.commonFiles ปิด)
 class UploadScreen extends StatefulWidget {
   final ApiService api;
 
@@ -623,71 +624,73 @@ class _UploadScreenState extends State<UploadScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 18),
-        SectionCard(
-          icon: Icons.attach_file_rounded,
-          title: 'ไฟล์ประกอบการรายงาน',
-          subtitle:
-              'ไฟล์ของเดือน $_period ที่ทุกหน่วยงานดาวน์โหลดได้ (เห็นทันทีหลังอัปโหลด)',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'เลือกได้หลายไฟล์พร้อมกัน  รับไฟล์ .${_commonExt.join(' .')}  ขนาดไม่เกิน 20 MB ต่อไฟล์',
-                style: body,
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: palette.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                  ),
-                  onPressed: busy || _loading ? null : _uploadCommon,
-                  icon: const Icon(Icons.upload_rounded),
-                  label: const Text(
-                    'เลือกไฟล์ประกอบและอัปโหลด',
-                    style: TextStyle(
-                      fontFamily: AppTheme.bodyFont,
-                      fontSize: 16,
-                    ),
-                  ),
+        if (AppFeatures.commonFiles) ...[
+          const SizedBox(height: 18),
+          SectionCard(
+            icon: Icons.attach_file_rounded,
+            title: 'ไฟล์ประกอบการรายงาน',
+            subtitle:
+                'ไฟล์ของเดือน $_period ที่ทุกหน่วยงานดาวน์โหลดได้ (เห็นทันทีหลังอัปโหลด)',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'เลือกได้หลายไฟล์พร้อมกัน  รับไฟล์ .${_commonExt.join(' .')}  ขนาดไม่เกิน 20 MB ต่อไฟล์',
+                  style: body,
                 ),
-              ),
-              const SizedBox(height: 16),
-              if (!_loading)
-                FileTable(
-                  busyName: _commonBusy,
-                  emptyText: 'ยังไม่มีไฟล์ประกอบในเดือน $_period',
-                  rows: [
-                    for (final f in _common)
-                      FileRow(
-                        name: f['name'] as String,
-                        size: f['size'] as num?,
-                        onDownload: busy
-                            ? null
-                            : () => _save(
-                                f['name'] as String,
-                                '/api/upload/common/file',
-                                {
-                                  'year': _year,
-                                  'month': _month,
-                                  'name': f['name'],
-                                },
-                              ),
-                        onDelete: busy
-                            ? null
-                            : () => _deleteCommon(f['name'] as String),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: palette.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
                       ),
-                  ],
+                    ),
+                    onPressed: busy || _loading ? null : _uploadCommon,
+                    icon: const Icon(Icons.upload_rounded),
+                    label: const Text(
+                      'เลือกไฟล์ประกอบและอัปโหลด',
+                      style: TextStyle(
+                        fontFamily: AppTheme.bodyFont,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
-            ],
+                const SizedBox(height: 16),
+                if (!_loading)
+                  FileTable(
+                    busyName: _commonBusy,
+                    emptyText: 'ยังไม่มีไฟล์ประกอบในเดือน $_period',
+                    rows: [
+                      for (final f in _common)
+                        FileRow(
+                          name: f['name'] as String,
+                          size: f['size'] as num?,
+                          onDownload: busy
+                              ? null
+                              : () => _save(
+                                  f['name'] as String,
+                                  '/api/upload/common/file',
+                                  {
+                                    'year': _year,
+                                    'month': _month,
+                                    'name': f['name'],
+                                  },
+                                ),
+                          onDelete: busy
+                              ? null
+                              : () => _deleteCommon(f['name'] as String),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 18),
         if (!_loading) _statusSection(),
       ],

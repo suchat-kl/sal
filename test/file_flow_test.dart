@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sal/config/features.dart';
 import 'package:sal/main.dart';
 import 'package:sal/services/api_service.dart';
 import 'package:sal/utils/file_pick.dart';
@@ -317,11 +318,14 @@ void main() {
   final mm = now.month.toString().padLeft(2, '0');
 
   setUp(() {
+    // ส่วนไฟล์ประกอบปิดเป็นค่าเริ่มต้น ชุดทดสอบเดิมเปิดไว้เพื่อทดสอบส่วนนั้นต่อ
+    AppFeatures.commonFiles = true;
     saved.clear();
     FakeFiles.periods = [];
     FileSaver.override = (name, bytes) => saved[name] = bytes;
   });
   tearDown(() {
+    AppFeatures.commonFiles = false;
     FileSaver.override = null;
     FilePick.override = null;
     FilePick.overrideMany = null;
@@ -738,6 +742,39 @@ void main() {
       expect(find.text('294 ศูนย์สร้างทางหล่มสัก'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'ปิดส่วนไฟล์ประกอบ (ค่าเริ่มต้น): หน้าอัปโหลดไม่มีส่วนไฟล์ประกอบ',
+    (tester) async {
+      AppFeatures.commonFiles = false;
+      await start(tester, 'uploader');
+      expect(find.textContaining('ไฟล์ประกอบ'), findsNothing);
+      await tapText(tester, 'อัปโหลดไฟล์');
+      expect(find.text('รายละเอียดการจ่ายเงินประจำเดือน'), findsOneWidget);
+      expect(find.textContaining('ไฟล์ประกอบ'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'ปิดส่วนไฟล์ประกอบ (ค่าเริ่มต้น): หน้าดาวน์โหลดไม่มีตารางไฟล์ประกอบ',
+    (tester) async {
+      AppFeatures.commonFiles = false;
+      await start(tester, 'user291');
+      await tapText(tester, 'ดาวน์โหลดไฟล์');
+      expect(find.textContaining('ดาวน์โหลดรวมทุกไฟล์'), findsOneWidget);
+      expect(find.textContaining('ไฟล์ประกอบ'), findsNothing);
+    },
+  );
+
+  testWidgets('ปิดส่วนไฟล์ประกอบ (ค่าเริ่มต้น): หน้าประวัติเหลือสองแท็บ', (
+    tester,
+  ) async {
+    AppFeatures.commonFiles = false;
+    await start(tester, 'admin');
+    await tapText(tester, 'ประวัติการใช้งาน');
+    expect(find.text('อัปโหลดรายละเอียดการจ่ายเงิน'), findsOneWidget);
+    expect(find.textContaining('ไฟล์ประกอบ'), findsNothing);
+  });
 
   testWidgets('ADMIN: หน้าประวัติการใช้งาน สามแท็บและค้นหา', (tester) async {
     await start(tester, 'admin');
