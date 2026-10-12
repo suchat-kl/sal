@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 
 import '../config/menu_data.dart';
 import '../config/theme.dart';
+import '../services/api_service.dart';
 import '../utils/link.dart';
+import '../widgets/home_announcements.dart';
 import '../widgets/payroll_illustration.dart';
 
-/// หน้าแรก: ภาพหัว + ทางลัดไปแต่ละระบบ + ข้อความอธิบายสองส่วน (ข้อความเดียวกับระบบเดิม)
+/// หน้าแรก: ภาพหัว + ประกาศ (ถ้ามี) + ทางลัดไปแต่ละระบบ + ข้อความอธิบายสองส่วน (ข้อความเดียวกับระบบเดิม)
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  /// ใช้โหลดประกาศที่ยังมีผล (เส้นสาธารณะ ไม่ต้องเข้าสู่ระบบ)
+  final ApiService api;
+
+  const HomeScreen({super.key, required this.api});
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +31,8 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _Hero(wide: wide),
+                  // ประกาศอยู่ใต้ภาพหัว เห็นทันทีไม่ต้องเลื่อน ไม่มีประกาศ = ไม่กินที่
+                  HomeAnnouncements(api: api),
                   const SizedBox(height: 28),
                   Text(
                     'บริการทั้งหมด',

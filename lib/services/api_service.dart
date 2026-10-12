@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/announcement.dart';
+
 /// ข้อผิดพลาดจาก backend ที่มีข้อความภาษาไทยพร้อมแสดงให้ผู้ใช้
 class ApiException implements Exception {
   final String message;
@@ -119,9 +121,16 @@ class ApiService {
       path.contains('/api/auth/refresh-token') ||
       path.contains('/api/auth/logout');
 
+  /// เส้นสาธารณะ เรียกได้โดยไม่ต้องเข้าสู่ระบบ: ไม่แนบ token และไม่ต่ออายุ token เมื่อพลาด
+  /// (ไม่งั้น token ที่หมดอายุค้างในเบราว์เซอร์จะทำให้หน้าแรกโดน 401 แล้วถูกพาออกจากระบบ)
+  static bool _isPublicPath(String path) =>
+      path.contains('/api/announcements/active');
+
   void _onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final token = prefs.getString(_accessKey);
-    if (token != null && !options.path.contains('/api/auth/login')) {
+    if (token != null &&
+        !options.path.contains('/api/auth/login') &&
+        !_isPublicPath(options.path)) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
@@ -137,6 +146,7 @@ class ApiService {
     final retried = options.extra['retried'] == true;
     if (err.response?.statusCode != 401 ||
         _isAuthPath(options.path) ||
+        _isPublicPath(options.path) ||
         retried ||
         prefs.getString(_refreshKey) == null) {
       return handler.next(err);
@@ -295,6 +305,89 @@ class ApiService {
         );
         return (res.data['message'] ?? 'ตั้งรหัสผ่านใหม่สำเร็จ') as String;
       });
+
+  // ---------------- ประกาศ ----------------
+
+  /// ประกาศที่ยังมีผล สำหรับหน้าแรก (สาธารณะ ไม่แนบ token) เรียงตามที่ backend ส่ง
+  Future<List<Announcement>> activeAnnouncements() => _call(() async {
+    final res = await dio.get('/api/announcements/active');
+    return _announcements(res.data);
+  });
+
+  /// อ่านรายการประกาศจาก response: เป็น list ตรง ๆ หรือห่ออยู่ในช่องใดช่องหนึ่ง
+  static List<Announcement> _announcements(Object? data) {
+    Object? list = data;
+    if (data is Map) {
+      list =
+          data['items'] ??
+          data['announcements'] ??
+          data['content'] ??
+          data['data'];
+    }
+    return [
+      if (list is List)
+        for (final a in list)
+          if (a is Map) Announcement.fromJson(Map<String, dynamic>.from(a)),
+    ];
+  }
+
+  /// รายการประกาศทั้งหมดแบบแบ่งหน้า (ADMIN) [status] = '1' ใช้งาน, '2' ไม่ใช้งาน, null = ทั้งหมด
+  ///
+  /// ชื่อช่องแบ่งหน้ารับได้สองแบบ: ตามสัญญา `items` + `total`
+  /// และแบบเดียวกับ `/api/admin/users` คือ `announcements` + `totalItems`
+  /// (เผื่อไว้ด้วย: `content`/`data` และ `totalElements` ของ Spring Page)
+  Future<({List<Announcement> items, int total})> searchAnnouncements({
+    String? title,
+    String? status,
+    int page = 0,
+    int size = 10,
+  }) => _call(() async {
+    final res = await dio.get(
+      '/api/admin/announcements',
+      queryParameters: {
+        'page': page,
+        'size': size,
+        if (title != null && title.trim().isNotEmpty) 'title': title.trim(),
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+    );
+    final data = res.data;
+    final items = _announcements(data);
+    Object? total;
+    if (data is Map) {
+      total = data['total'] ?? data['totalItems'] ?? data['totalElements'];
+    }
+    return (items: items, total: total is num ? total.toInt() : items.length);
+  });
+
+  /// backend ตอบ 200 แต่ success = false ก็ถือว่าไม่สำเร็จ คืนข้อความของ backend
+  static String _resultMessage(Object? data, String fallback) {
+    if (data is! Map) return fallback;
+    final message = data['message'] is String
+        ? data['message'] as String
+        : null;
+    if (data['success'] == false) {
+      throw ApiException(message ?? 'บันทึกข้อมูลไม่สำเร็จ');
+    }
+    return message ?? fallback;
+  }
+
+  /// เพิ่ม ([id] = null) หรือแก้ไขประกาศ คืนข้อความผลลัพธ์ของ backend
+  Future<String> saveAnnouncement(String? id, Map<String, dynamic> body) =>
+      _call(() async {
+        final res = id == null
+            ? await dio.post('/api/admin/announcements', data: body)
+            : await dio.put('/api/admin/announcements/$id', data: body);
+        return _resultMessage(
+          res.data,
+          id == null ? 'บันทึกข้อมูลสำเร็จ' : 'อัปเดตข้อมูลสำเร็จ',
+        );
+      });
+
+  Future<String> deleteAnnouncement(String id) => _call(() async {
+    final res = await dio.delete('/api/admin/announcements/$id');
+    return _resultMessage(res.data, 'ลบข้อมูลสำเร็จ');
+  });
 
   /// รายชื่อหน่วยงาน [{div, divname}] ใช้ทำตัวเลือกในฟอร์มผู้ใช้ และให้ ADMIN/UPLOAD เลือกหน่วยงานในหน้าดาวน์โหลด
   Future<List<Map<String, String>>> divs() => _call(() async {

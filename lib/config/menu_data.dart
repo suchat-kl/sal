@@ -122,9 +122,10 @@ class MenuData {
   static const String uploadId = 'upload';
   static const String downloadId = 'download';
   static const String historyId = 'history';
+  static const String announcementId = 'announcements';
 
   /// เมนูของผู้ที่เข้าสู่ระบบแล้ว — เปลี่ยนรหัสผ่านใช้ได้ทุกบทบาท
-  /// ดาวน์โหลด = USER/UPLOAD/ADMIN, อัปโหลดและประวัติการใช้งาน = UPLOAD/ADMIN, จัดการผู้ใช้ = ADMIN
+  /// ดาวน์โหลด = USER/UPLOAD/ADMIN, อัปโหลดและประวัติการใช้งาน = UPLOAD/ADMIN, จัดการผู้ใช้และประกาศ = ADMIN
   static List<MenuNode> userItems({
     required bool isAdmin,
     bool canUpload = false,
@@ -159,6 +160,14 @@ class MenuData {
         title: 'ประวัติการใช้งาน',
         icon: Icons.history_rounded,
         description: 'ใครดาวน์โหลด อัปโหลด เผยแพร่ หรือลบไฟล์ เมื่อไร',
+      ),
+    // ประกาศบนหน้าแรก: งานเงินเดือน (UPLOAD) และ ADMIN จัดการได้
+    if (canUpload)
+      const MenuNode(
+        id: announcementId,
+        title: 'ประกาศ',
+        icon: Icons.campaign_rounded,
+        description: 'เพิ่ม แก้ไข หรือลบประกาศที่แสดงบนหน้าแรก',
       ),
     const MenuNode(
       id: changePasswordId,

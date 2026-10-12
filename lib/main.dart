@@ -6,6 +6,7 @@ import 'config/menu_data.dart';
 import 'config/theme.dart';
 import 'providers/auth_provider.dart';
 import 'screens/account_screen.dart';
+import 'screens/announcement_list_screen.dart';
 import 'screens/download_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/home_screen.dart';
@@ -257,8 +258,10 @@ class _MainShellState extends State<MainShell> {
           api: _auth.api,
           mode: UserListMode.resetPassword,
         );
+      case MenuData.announcementId when _auth.isLoggedIn && _auth.canUpload:
+        return AnnouncementListScreen(api: _auth.api);
       default:
-        return const HomeScreen();
+        return HomeScreen(api: _auth.api);
     }
   }
 
