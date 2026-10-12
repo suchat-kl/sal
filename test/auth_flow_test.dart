@@ -225,6 +225,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(_inMenu('สร้างผู้ใช้งาน'), findsOneWidget);
     expect(_inMenu('กำหนดรหัสผ่านใหม่'), findsOneWidget);
+    expect(_inMenu('ประกาศ'), findsOneWidget);
+    // เมนูของ ADMIN ยาวขึ้น (มีเมนูประกาศ) เมนูหลักท่อนล่างต้องเลื่อนเมนูข้างลงไปดู
+    await tester.scrollUntilVisible(
+      _inMenu('หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)'),
+      200,
+      scrollable: find.descendant(
+        of: find.byType(SidebarMenu),
+        matching: find.byType(Scrollable),
+      ),
+    );
     expect(_inMenu('หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)'), findsOneWidget);
   });
 
