@@ -138,10 +138,10 @@ class _Hero extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () => openLink(context, 'https://dbdoh.doh.go.th/yt/'),
+              onPressed: () => openLink(context, MenuData.sliptaxUrl),
               icon: const Icon(Icons.receipt_long_rounded),
               label: const Text(
-                'ใบรับรองภาษี/สลิป กรมทางหลวง',
+                'สลิปเงินเดือน/ภาษี',
                 style: TextStyle(
                   fontFamily: AppTheme.bodyFont,
                   fontWeight: FontWeight.w700,

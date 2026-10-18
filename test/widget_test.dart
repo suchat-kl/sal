@@ -75,7 +75,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('เมนู'));
     await tester.pumpAndSettle();
-    expect(_inMenu('ใบรับรองภาษีกรมทางหลวง/สลิป'), findsOneWidget);
+    expect(
+      _inMenu(
+        'สลิปเงินเดือน/ภาษี(กรมทางหลวง/ตำรวจทางหลวง/ผู้รับบำนาญกรมทางหลวง)',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('เลือกธีมใหม่แล้วบันทึกและโหลดกลับจากเครื่อง', (tester) async {

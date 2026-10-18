@@ -7,10 +7,9 @@
 
 | เมนู | ปลายทาง |
 |---|---|
-| ใบรับรองภาษีกรมทางหลวง/สลิป | https://dbdoh.doh.go.th/yt/ |
-| ใบรับรองภาษีตำรวจทางหลวง/สลิป | https://dbdoh.doh.go.th/tax/ |
+| สลิปเงินเดือน/ภาษี(กรมทางหลวง/ตำรวจทางหลวง/ผู้รับบำนาญกรมทางหลวง) | https://inf.doh.go.th/sliptax/ |
 | สลิป (พนักงานราชการส่วนกลาง) | http://dev.doh.go.th:8088/payroll |
-| หักหนี้ (ข้าราชการ/ลูกจ้างประจำ) | https://dbdoh.doh.go.th/dp |
+| หักหนี้ (ข้าราชการ/ลูกจ้างประจำ) | https://inf.doh.go.th/dpay/ |
 | ฌาปนกิจ — ดาวน์โหลดไฟล์ | https://sal.doh.go.th/Funeral/ |
 | ฌาปนกิจ — ระบบฌาปนกิจสงเคราะห์ | http://hr-app:7777/DohHrFfd/common/Login |
 | จองห้องพัก/ห้องอบรม (HTC) | https://inf.doh.go.th/htc/ |

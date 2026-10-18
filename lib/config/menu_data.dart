@@ -26,12 +26,13 @@ class MenuNode {
 }
 
 /// ลิงก์เดียวกับเมนูของระบบเดิม https://sal.doh.go.th/sal/
-/// ลิงก์ของ dbdoh เปลี่ยนเป็น https (เครื่องนั้นเปิด HTTPS และ redirect จาก http อยู่แล้ว)
+/// สลิป/ภาษี (กรมทางหลวง+ตำรวจทางหลวง) และหักหนี้ ย้ายไประบบใหม่บน inf.doh.go.th แล้ว
 /// dev.doh.go.th:8088 และ hr-app:7777 คงตามเดิม เพราะยังไม่ได้ตรวจว่ารองรับ https
 class MenuData {
   MenuData._();
 
   static const String homeId = 'home';
+  static const String sliptaxUrl = 'https://inf.doh.go.th/sliptax/';
   static const String helpdeskUrl = 'https://smhd.doh.go.th/login';
   static const String legacyLoginUrl = 'https://sal.doh.go.th/sal/';
 
@@ -43,19 +44,11 @@ class MenuData {
       icon: Icons.receipt_long_rounded,
       children: [
         MenuNode(
-          id: 'tax-doh',
-          title: 'ใบรับรองภาษีกรมทางหลวง/สลิป',
+          id: 'sliptax',
+          title: 'สลิปเงินเดือน/ภาษี(กรมทางหลวง/ตำรวจทางหลวง/ผู้รับบำนาญกรมทางหลวง)',
           icon: Icons.description_rounded,
-          url: 'https://dbdoh.doh.go.th/yt/',
-          description: 'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ข้าราชการ/ลูกจ้างประจำ/พนักงานราชการส่วนกลาง กรมทางหลวง',
-        ),
-        MenuNode(
-          id: 'tax-police',
-          title: 'ใบรับรองภาษีตำรวจทางหลวง/สลิป',
-          icon: Icons.local_police_rounded,
-          url: 'https://dbdoh.doh.go.th/tax/',
-          description:
-              'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ตำรวจทางหลวง',
+          url: sliptaxUrl,
+          description: 'หนังสือรับรองการหักภาษี ณ ที่จ่าย และสลิปเงินเดือน ข้าราชการ/ลูกจ้างประจำ/พนักงานราชการส่วนกลาง กรมทางหลวง ตำรวจทางหลวง และผู้รับบำนาญกรมทางหลวง',
         ),
         MenuNode(
           id: 'payroll-gov',
@@ -70,7 +63,7 @@ class MenuData {
       id: 'debt',
       title: 'หักหนี้ (ข้าราชการ/ลูกจ้างประจำ)',
       icon: Icons.account_balance_wallet_rounded,
-      url: 'https://dbdoh.doh.go.th/dp',
+      url: 'https://inf.doh.go.th/dpay/',
       description: 'รายการหักหนี้จากเงินเดือน สำหรับข้าราชการและลูกจ้างประจำ',
     ),
     MenuNode(
