@@ -75,7 +75,7 @@ class MenuData {
           id: 'funeral-download',
           title: 'ดาวน์โหลดไฟล์',
           icon: Icons.download_rounded,
-          url: 'https://sal.doh.go.th/Funeral/',
+          url: 'https://inf.doh.go.th/funeral',
           description: 'ดาวน์โหลดเอกสารฌาปนกิจสงเคราะห์',
         ),
         MenuNode(
