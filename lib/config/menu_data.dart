@@ -34,6 +34,7 @@ class MenuData {
   static const String homeId = 'home';
   static const String sliptaxUrl = 'https://inf.doh.go.th/sliptax/';
   static const String helpdeskUrl = 'https://smhd.doh.go.th/login';
+  static const String portalUrl = 'https://inf.doh.go.th';
   static const String legacyLoginUrl = 'https://sal.doh.go.th/sal/';
 
   static const List<MenuNode> items = [

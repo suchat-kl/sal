@@ -167,6 +167,26 @@ class _Hero extends StatelessWidget {
                 style: TextStyle(fontFamily: AppTheme.bodyFont),
               ),
             ),
+            // กลับไปหน้ารวมระบบของกรม (inf.doh.go.th)
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.6)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => openLink(context, MenuData.portalUrl),
+              icon: const Icon(Icons.home_rounded),
+              label: const Text(
+                'หน้าแรก',
+                style: TextStyle(fontFamily: AppTheme.bodyFont),
+              ),
+            ),
           ],
         ),
       ],
