@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../utils/link.dart';
 import '../widgets/home_announcements.dart';
 import '../widgets/payroll_illustration.dart';
+import '../widgets/set_homepage_dialog.dart';
 
 /// หน้าแรก: ภาพหัว + ประกาศ (ถ้ามี) + ทางลัดไปแต่ละระบบ + ข้อความอธิบายสองส่วน (ข้อความเดียวกับระบบเดิม)
 class HomeScreen extends StatelessWidget {
@@ -167,7 +168,7 @@ class _Hero extends StatelessWidget {
                 style: TextStyle(fontFamily: AppTheme.bodyFont),
               ),
             ),
-            // กลับไปหน้ารวมระบบของกรม (inf.doh.go.th)
+            // บอกวิธีตั้ง inf.doh.go.th เป็นหน้าแรกของเบราว์เซอร์ (หน้าเว็บตั้งให้เองไม่ได้)
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -180,10 +181,11 @@ class _Hero extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () => openLink(context, MenuData.portalUrl),
+              onPressed: () =>
+                  showSetHomepageDialog(context, MenuData.portalUrl),
               icon: const Icon(Icons.home_rounded),
               label: const Text(
-                'หน้าแรก',
+                'ตั้งเป็นหน้าแรก',
                 style: TextStyle(fontFamily: AppTheme.bodyFont),
               ),
             ),
